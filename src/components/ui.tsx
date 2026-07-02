@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode, type ButtonHTMLAttributes } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode, type ButtonHTMLAttributes } from 'react'
 import { Link } from 'react-router-dom'
 
 /* ---------------------------------------------------------------- */
@@ -208,30 +208,36 @@ export function Reveal({
   as?: 'div' | 'section' | 'li' | 'article'
 }) {
   const ref = useRef<HTMLElement | null>(null)
-  const [shown, setShown] = useState(false)
+  // B5: start visible so content is never hidden without JS; JS adds the animation class
+  const [shown, setShown] = useState(true)
+  const [animated, setAnimated] = useState(false)
 
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setShown(true)
-      return
-    }
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    // Kick off the reveal animation from invisible
+    setShown(false)
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setShown(true)
+          setAnimated(true)
           io.disconnect()
         }
       },
-      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' },
+      { threshold: 0.08, rootMargin: '0px 0px -32px 0px' },
     )
     io.observe(el)
     return () => io.disconnect()
   }, [])
 
   return (
-    <Tag ref={ref as never} className={`reveal ${shown ? 'reveal--in' : ''} ${className}`} style={{ transitionDelay: `${delay}ms` }}>
+    <Tag
+      ref={ref as never}
+      className={`reveal ${shown ? 'reveal--in' : ''} ${animated ? 'reveal--animated' : ''} ${className}`}
+      style={{ transitionDelay: animated ? `${delay}ms` : '0ms' }}
+    >
       {children}
     </Tag>
   )
@@ -273,9 +279,18 @@ export function Spark4({ className }: { className?: string }) {
 
 export function Accordion({ title, children, defaultOpen = false }: { title: string; children: ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen)
+  const id = useId()
+  const headId = `acc-head-${id}`
+  const bodyId = `acc-body-${id}`
   return (
     <div className={`accordion ${open ? 'accordion--open' : ''}`}>
-      <button className="accordion__head" onClick={() => setOpen(!open)} aria-expanded={open}>
+      <button
+        id={headId}
+        className="accordion__head"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        aria-controls={bodyId}
+      >
         <span>{title}</span>
         <span className="accordion__icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" width={20} height={20} {...iconProps}>
@@ -284,7 +299,13 @@ export function Accordion({ title, children, defaultOpen = false }: { title: str
           </svg>
         </span>
       </button>
-      <div className="accordion__body">
+      <div
+        id={bodyId}
+        className="accordion__body"
+        role="region"
+        aria-labelledby={headId}
+        aria-hidden={!open}
+      >
         <div className="accordion__inner">{children}</div>
       </div>
     </div>

@@ -1,20 +1,21 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import Mascot from '../components/mascot/Mascot'
 import ProductArt from '../components/ProductArt'
 import { useCart } from '../context/CartContext'
 import { useMascotMood } from '../context/MascotMoodContext'
-import { formatPrice } from '../lib/format'
+import { formatPrice, installments } from '../lib/format'
 import { Button } from '../components/ui'
 
 const STEPS = ['Datos', 'Envío', 'Pago', 'Confirmación']
 
 export default function Checkout() {
-  const { entries, total, clear } = useCart()
+  const { entries, total, discount, shipping, grandTotal, coupon, clear } = useCart()
   const { pulse } = useMascotMood()
   const [step, setStep] = useState(0)
   const [done, setDone] = useState(false)
-  const shipping = total >= 50000 ? 0 : 6990
+  // B3: order number generated once, never re-created on re-render
+  const orderNum = useRef(`AGN-${Math.floor(1000 + Math.random() * 9000)}`)
 
   if (entries.length === 0 && !done) return <Navigate to="/carrito" replace />
 
@@ -27,7 +28,7 @@ export default function Checkout() {
       setDone(true)
       clear()
       pulse('excited', 4000)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      window.scrollTo({ top: 0, behavior: 'instant' })
     }
   }
 
@@ -36,7 +37,7 @@ export default function Checkout() {
       <main className="page">
         <div className="container checkout-done">
           <Mascot variant="rock" rays className="checkout-done__mascot" title="Guantín festejando tu compra" />
-          <p className="checkout-done__eyebrow">Pedido #AGN-{Math.floor(1000 + Math.random() * 9000)}</p>
+          <p className="checkout-done__eyebrow">Pedido #{orderNum.current}</p>
           <h1 className="page__title">¡Gracias, crack!</h1>
           <p className="page__sub">
             Tu pedido ya está en manos de Guantín. Te mandamos la confirmación y el seguimiento por mail y WhatsApp.
@@ -142,8 +143,8 @@ export default function Checkout() {
                 <label className="field">
                   <span>Cuotas</span>
                   <select defaultValue="3">
-                    <option value="1">1 pago de {formatPrice(total + shipping)}</option>
-                    <option value="3">3 cuotas sin interés de {formatPrice(Math.round((total + shipping) / 3))}</option>
+                    <option value="1">1 pago de {formatPrice(grandTotal)}</option>
+                    <option value="3">{installments(grandTotal)}</option>
                   </select>
                 </label>
               </fieldset>
@@ -182,13 +183,19 @@ export default function Checkout() {
                 <dt>Subtotal</dt>
                 <dd>{formatPrice(total)}</dd>
               </div>
+              {discount > 0 && (
+                <div className="summary__discount">
+                  <dt>Descuento ({coupon})</dt>
+                  <dd>−{formatPrice(discount)}</dd>
+                </div>
+              )}
               <div>
                 <dt>Envío</dt>
                 <dd>{shipping === 0 ? 'Gratis' : formatPrice(shipping)}</dd>
               </div>
               <div className="summary__total">
                 <dt>Total</dt>
-                <dd>{formatPrice(total + shipping)}</dd>
+                <dd>{formatPrice(grandTotal)}</dd>
               </div>
             </dl>
           </aside>

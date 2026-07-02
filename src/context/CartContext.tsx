@@ -2,6 +2,13 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { getProduct, type Product } from '../data/catalog'
 import { useMascotMood } from './MascotMoodContext'
 
+export const FREE_SHIPPING_THRESHOLD = 50000
+export const SHIPPING_COST = 6990
+
+const COUPONS: Record<string, number> = {
+  GUANTIN10: 0.1,
+}
+
 export interface CartItem {
   slug: string
   qty: number
@@ -11,6 +18,12 @@ interface CartValue {
   items: CartItem[]
   count: number
   total: number
+  discount: number
+  shipping: number
+  grandTotal: number
+  coupon: string | null
+  applyCoupon: (code: string) => boolean
+  removeCoupon: () => void
   add: (slug: string, qty?: number) => void
   setQty: (slug: string, qty: number) => void
   remove: (slug: string) => void
@@ -29,6 +42,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return []
     }
   })
+  const [coupon, setCoupon] = useState<string | null>(null)
   const { pulse } = useMascotMood()
 
   useEffect(() => {
@@ -41,11 +55,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
       .filter((e) => e.product)
     const total = entries.reduce((sum, e) => sum + e.product.price * e.qty, 0)
     const count = entries.reduce((sum, e) => sum + e.qty, 0)
+    const rate = coupon ? (COUPONS[coupon] ?? 0) : 0
+    const discount = Math.round(total * rate)
+    const afterDiscount = total - discount
+    const shipping = afterDiscount >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
+    const grandTotal = afterDiscount + shipping
     return {
       items,
       entries,
       count,
       total,
+      discount,
+      shipping,
+      grandTotal,
+      coupon,
+      applyCoupon: (code: string) => {
+        const key = code.trim().toUpperCase()
+        if (COUPONS[key]) {
+          setCoupon(key)
+          return true
+        }
+        return false
+      },
+      removeCoupon: () => setCoupon(null),
       add: (slug, qty = 1) => {
         setItems((prev) => {
           const found = prev.find((i) => i.slug === slug)
@@ -59,9 +91,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
           qty <= 0 ? prev.filter((i) => i.slug !== slug) : prev.map((i) => (i.slug === slug ? { ...i, qty } : i)),
         ),
       remove: (slug) => setItems((prev) => prev.filter((i) => i.slug !== slug)),
-      clear: () => setItems([]),
+      clear: () => {
+        setItems([])
+        setCoupon(null)
+      },
     }
-  }, [items, pulse])
+  }, [items, coupon, pulse])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

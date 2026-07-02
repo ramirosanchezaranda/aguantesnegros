@@ -11,19 +11,23 @@ export default function Home() {
   const { pulse } = useMascotMood()
   const heroRef = useRef<HTMLDivElement>(null)
 
-  // Parallax leve del personaje siguiendo el mouse.
+  // B8: parallax throttled via requestAnimationFrame
   useEffect(() => {
     const hero = heroRef.current
     if (!hero || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    let raf = 0
     const onMove = (e: MouseEvent) => {
-      const r = hero.getBoundingClientRect()
-      const x = (e.clientX - r.left) / r.width - 0.5
-      const y = (e.clientY - r.top) / r.height - 0.5
-      hero.style.setProperty('--px', `${x * 14}px`)
-      hero.style.setProperty('--py', `${y * 10}px`)
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => {
+        const r = hero.getBoundingClientRect()
+        const x = (e.clientX - r.left) / r.width - 0.5
+        const y = (e.clientY - r.top) / r.height - 0.5
+        hero.style.setProperty('--px', `${x * 14}px`)
+        hero.style.setProperty('--py', `${y * 10}px`)
+      })
     }
     hero.addEventListener('mousemove', onMove)
-    return () => hero.removeEventListener('mousemove', onMove)
+    return () => { hero.removeEventListener('mousemove', onMove); cancelAnimationFrame(raf) }
   }, [])
 
   return (
@@ -50,7 +54,7 @@ export default function Home() {
                 Ver productos
               </Button>
               <Button
-                to="/producto/maquina-inalambrica-clash-pro"
+                to="/producto/cartuchos-black-sheep-1205rl-x20"
                 variant="ghost"
                 onMouseEnter={() => pulse('excited', 700)}
               >

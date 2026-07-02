@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import LogoMark from './mascot/LogoMark'
 import { useMascotMood } from '../context/MascotMoodContext'
 import { useCart } from '../context/CartContext'
-import { CartIcon, MenuIcon, SearchIcon, UserIcon } from './ui'
+import { CartIcon, MenuIcon } from './ui'
 import { CATEGORIES } from '../data/catalog'
 
 export default function Header() {
@@ -12,6 +12,8 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [hovering, setHovering] = useState(false)
+  const drawerRef = useRef<HTMLDivElement>(null)
+  const menuBtnRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -26,7 +28,42 @@ export default function Header() {
     return () => document.body.classList.remove('no-scroll')
   }, [menuOpen])
 
-  // Al pasar el mouse por el logo, Guantín espía por encima de los lentes.
+  // B10: close drawer on Escape
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMenuOpen(false)
+        menuBtnRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [menuOpen])
+
+  // B10: focus trap inside drawer
+  useEffect(() => {
+    if (!menuOpen) return
+    const drawer = drawerRef.current
+    if (!drawer) return
+    const focusable = drawer.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    )
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    first?.focus()
+    const trap = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last?.focus() }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first?.focus() }
+      }
+    }
+    drawer.addEventListener('keydown', trap)
+    return () => drawer.removeEventListener('keydown', trap)
+  }, [menuOpen])
+
   const logoMood = hovering && mood === 'happy' ? 'peek' : mood
 
   return (
@@ -39,14 +76,21 @@ export default function Header() {
       <header className={`header ${scrolled ? 'header--scrolled' : ''}`}>
         <div className="header__inner container">
           <div className="header__left">
-            <button className="header__menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menú" aria-expanded={menuOpen}>
+            <button
+              ref={menuBtnRef}
+              className="header__menu"
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label="Menú"
+              aria-expanded={menuOpen}
+              aria-controls="site-drawer"
+            >
               <MenuIcon open={menuOpen} />
               <span className="header__menu-label">Menú</span>
             </button>
             <nav className="header__nav" aria-label="Principal">
               <NavLink to="/categorias">Categorías</NavLink>
-              <NavLink to="/categoria/maquinas">Máquinas</NavLink>
-              <NavLink to="/categoria/tintas">Tintas</NavLink>
+              <NavLink to="/categoria/descartables">Descartables</NavLink>
+              <NavLink to="/categoria/pigmentos">Pigmentos</NavLink>
               <NavLink to="/faq">FAQ</NavLink>
             </nav>
           </div>
@@ -71,12 +115,6 @@ export default function Header() {
           </Link>
 
           <div className="header__actions">
-            <button className="header__icon" aria-label="Buscar">
-              <SearchIcon />
-            </button>
-            <button className="header__icon header__icon--desktop" aria-label="Mi cuenta">
-              <UserIcon />
-            </button>
             <Link to="/carrito" className="header__icon header__cart" aria-label={`Carrito, ${count} productos`}>
               <CartIcon />
               {count > 0 && (
@@ -88,7 +126,12 @@ export default function Header() {
           </div>
         </div>
 
-        <div className={`drawer ${menuOpen ? 'drawer--open' : ''}`}>
+        <div
+          id="site-drawer"
+          ref={drawerRef}
+          className={`drawer ${menuOpen ? 'drawer--open' : ''}`}
+          aria-hidden={!menuOpen}
+        >
           <nav className="drawer__nav container" aria-label="Categorías">
             <p className="drawer__eyebrow">Categorías</p>
             {CATEGORIES.map((c, i) => (

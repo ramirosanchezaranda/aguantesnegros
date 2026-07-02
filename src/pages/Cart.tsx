@@ -8,19 +8,23 @@ import { formatPrice } from '../lib/format'
 import { Button } from '../components/ui'
 
 export default function Cart() {
-  const { entries, total, setQty, remove } = useCart()
+  const { entries, total, discount, shipping, grandTotal, coupon, applyCoupon, removeCoupon, setQty, remove } = useCart()
   const { setBaseMood } = useMascotMood()
   const [code, setCode] = useState('')
-  const [applied, setApplied] = useState(false)
+  const [error, setError] = useState(false)
   const empty = entries.length === 0
 
-  // El logo se pone triste si el carrito está vacío.
   useEffect(() => {
     setBaseMood(empty ? 'sad' : 'happy')
     return () => setBaseMood('happy')
   }, [empty, setBaseMood])
 
-  const discount = applied ? Math.round(total * 0.1) : 0
+  const handleApply = () => {
+    if (!code.trim()) return
+    const ok = applyCoupon(code)
+    setError(!ok)
+    if (ok) setCode('')
+  }
 
   if (empty) {
     return (
@@ -28,7 +32,7 @@ export default function Cart() {
         <div className="container cart-empty">
           <Mascot variant="question" className="cart-empty__mascot" title="Guantín con el carrito vacío" />
           <h1 className="page__title">Tu carrito está vacío</h1>
-          <p className="page__sub">Y Guantín está triste. Dale una alegría: hay máquinas, tintas y agujas esperándote.</p>
+          <p className="page__sub">Y Guantín está triste. Dale una alegría: hay cartuchos, tintas y agujas esperándote.</p>
           <Button to="/categorias" arrow>
             Ver productos
           </Button>
@@ -95,20 +99,29 @@ export default function Cart() {
             ))}
 
             <div className="cart__coupon">
-              <input
-                type="text"
-                placeholder="Código de descuento"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                aria-label="Código de descuento"
-              />
-              <button
-                className="btn btn--primary"
-                onClick={() => setApplied(code.trim().toUpperCase() === 'GUANTIN10')}
-              >
-                <span className="btn__label">Aplicar</span>
-              </button>
-              {applied && <p className="cart__coupon-ok">¡GUANTIN10 aplicado! −10%</p>}
+              {coupon ? (
+                <p className="cart__coupon-ok">
+                  ¡{coupon} aplicado! −10%{' '}
+                  <button className="cart__coupon-remove" onClick={removeCoupon} aria-label="Quitar cupón">
+                    ×
+                  </button>
+                </p>
+              ) : (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Código de descuento"
+                    value={code}
+                    onChange={(e) => { setCode(e.target.value); setError(false) }}
+                    aria-label="Código de descuento"
+                    aria-invalid={error}
+                  />
+                  <button className="btn btn--primary" onClick={handleApply}>
+                    <span className="btn__label">Aplicar</span>
+                  </button>
+                  {error && <p className="cart__coupon-error">Código inválido</p>}
+                </>
+              )}
             </div>
 
             <Link to="/categorias" className="cart__continue">
@@ -123,19 +136,19 @@ export default function Cart() {
                 <dt>Subtotal</dt>
                 <dd>{formatPrice(total)}</dd>
               </div>
-              {applied && (
+              {discount > 0 && (
                 <div className="summary__discount">
-                  <dt>Descuento</dt>
+                  <dt>Descuento ({coupon})</dt>
                   <dd>−{formatPrice(discount)}</dd>
                 </div>
               )}
               <div>
                 <dt>Envío</dt>
-                <dd>{total - discount >= 50000 ? 'Gratis' : formatPrice(6990)}</dd>
+                <dd>{shipping === 0 ? 'Gratis' : formatPrice(shipping)}</dd>
               </div>
               <div className="summary__total">
                 <dt>Total</dt>
-                <dd>{formatPrice(total - discount + (total - discount >= 50000 ? 0 : 6990))}</dd>
+                <dd>{formatPrice(grandTotal)}</dd>
               </div>
             </dl>
             <Button to="/checkout" variant="red" className="summary__cta">

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useId, type ReactNode } from 'react'
 import type { MascotVariant } from '../../data/catalog'
 
 export const INK = '#0B0B0B'
@@ -491,8 +491,6 @@ function Pose({ variant }: { variant: MascotVariant }) {
   }
 }
 
-let uid = 0
-
 export interface MascotProps {
   variant?: MascotVariant
   mood?: Mood
@@ -502,8 +500,67 @@ export interface MascotProps {
   title?: string
 }
 
+// Sprite sheet mapping: each variant maps to a sheet image and a cell position.
+// Sheets are 3-column × 2-row grids.
+// sheet-tools: (0,0)=machine (1,0)=ink (2,0)=cup+machine (0,1)=cream (1,1)=tattooing (2,1)=needle
+// sheet-poses: (0,0)=peace (1,0)=looking-down (2,0)=arms-crossed (0,1)=walking (1,1)=rock-sparks (2,1)=pointing
+type SpriteRef = { sheet: 'tools' | 'poses'; col: 0 | 1 | 2; row: 0 | 1 }
+const SPRITE: Partial<Record<MascotVariant, SpriteRef>> = {
+  machine:  { sheet: 'tools', col: 0, row: 0 },
+  ink:      { sheet: 'tools', col: 1, row: 0 },
+  cream:    { sheet: 'tools', col: 0, row: 1 },
+  power:    { sheet: 'tools', col: 1, row: 1 },
+  gloves:   { sheet: 'tools', col: 2, row: 1 },
+  pointing: { sheet: 'poses', col: 2, row: 1 },
+  walking:  { sheet: 'poses', col: 0, row: 1 },
+  rock:     { sheet: 'poses', col: 1, row: 1 },
+  question: { sheet: 'poses', col: 1, row: 0 },
+  cart:     { sheet: 'poses', col: 0, row: 0 },
+}
+
+export function MascotImage({
+  variant = 'hero',
+  className,
+  title,
+}: {
+  variant?: MascotVariant
+  className?: string
+  title?: string
+}) {
+  if (variant === 'hero') {
+    return (
+      <img
+        src="/mascot/hero.png"
+        alt={title ?? 'Guantín, la mascota de A Guantes Negros'}
+        className={className}
+        style={{ mixBlendMode: 'multiply' }}
+        draggable={false}
+      />
+    )
+  }
+  const ref = SPRITE[variant]
+  if (!ref) return null
+  const xPct = ref.col === 0 ? '0%' : ref.col === 1 ? '50%' : '100%'
+  const yPct = ref.row === 0 ? '0%' : '100%'
+  return (
+    <div
+      role="img"
+      aria-label={title ?? 'Guantín, la mascota de A Guantes Negros'}
+      className={className}
+      style={{
+        backgroundImage: `url(/mascot/sheet-${ref.sheet}.png)`,
+        backgroundSize: '300% 200%',
+        backgroundPosition: `${xPct} ${yPct}`,
+        backgroundRepeat: 'no-repeat',
+        mixBlendMode: 'multiply',
+      }}
+    />
+  )
+}
+
 export default function Mascot({ variant = 'hero', mood = 'happy', className, flip, rays, title }: MascotProps) {
-  const clipId = `mascot-${variant}-${uid++}`
+  const id = useId()
+  const clipId = `mascot-${id}`
   const wide = variant === 'cart'
   return (
     <svg
