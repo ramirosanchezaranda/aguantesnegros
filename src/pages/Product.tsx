@@ -1,0 +1,160 @@
+import { useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import Mascot from '../components/mascot/Mascot'
+import ProductArt from '../components/ProductArt'
+import ProductCard from '../components/ProductCard'
+import { getCategory, getProduct, PRODUCTS } from '../data/catalog'
+import { useCart } from '../context/CartContext'
+import { formatPrice, installments } from '../lib/format'
+import { Accordion, BadgeIcon, Button, CardIcon, Reveal, Stars, TruckIcon } from '../components/ui'
+import NotFound from './NotFound'
+
+export default function Product() {
+  const { slug = '' } = useParams()
+  const product = getProduct(slug)
+  const { add } = useCart()
+  const navigate = useNavigate()
+  const [qty, setQty] = useState(1)
+  const [shot, setShot] = useState(0)
+
+  if (!product) return <NotFound />
+  const category = getCategory(product.category)
+  const related = PRODUCTS.filter((p) => p.category === product.category && p.slug !== product.slug).slice(0, 4)
+
+  return (
+    <main className="page" key={product.slug}>
+      <div className="container">
+        <nav className="crumbs" aria-label="Migas de pan">
+          <Link to="/">Inicio</Link> <span>/</span>{' '}
+          <Link to={`/categoria/${product.category}`}>{category?.name}</Link> <span>/</span>{' '}
+          <span aria-current="page">{product.name}</span>
+        </nav>
+
+        <div className="pdp">
+          {/* Galería */}
+          <div className="pdp__gallery">
+            <div className="pdp__thumbs">
+              {[0, 1, 2].map((i) => (
+                <button
+                  key={i}
+                  className={`pdp__thumb ${shot === i ? 'pdp__thumb--on' : ''}`}
+                  onClick={() => setShot(i)}
+                  aria-label={`Vista ${i + 1}`}
+                >
+                  <ProductArt kind={product.art} />
+                </button>
+              ))}
+            </div>
+            <div className="pdp__stage">
+              {product.badge && <span className="pcard__badge">{product.badge}</span>}
+              <ProductArt kind={product.art} className={`pdp__art pdp__art--${shot}`} />
+            </div>
+          </div>
+
+          {/* Info */}
+          <div className="pdp__info">
+            <p className="pdp__brand">{product.brand}</p>
+            <h1 className="pdp__name">{product.name}</h1>
+            <p className="pdp__rating">
+              <Stars rating={product.rating} /> <span>({product.reviews} reseñas)</span>
+            </p>
+            <p className="pdp__price">
+              {product.compareAt && <s>{formatPrice(product.compareAt)}</s>}
+              {formatPrice(product.price)}
+            </p>
+            <p className="pdp__installments">{installments(product.price)}</p>
+
+            <ul className="pdp__perks">
+              {product.specs.slice(0, 4).map(([k, v]) => (
+                <li key={k}>
+                  <strong>{k}</strong> {v}
+                </li>
+              ))}
+            </ul>
+
+            <div className="pdp__buy">
+              <div className="qty">
+                <button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Restar">
+                  −
+                </button>
+                <span aria-live="polite">{qty}</span>
+                <button onClick={() => setQty(qty + 1)} aria-label="Sumar">
+                  +
+                </button>
+              </div>
+              <Button variant="red" className="pdp__cta" onClick={() => add(product.slug, qty)}>
+                Agregar al carrito
+              </Button>
+            </div>
+            <Button
+              variant="ghost"
+              className="pdp__now"
+              onClick={() => {
+                add(product.slug, qty)
+                navigate('/checkout')
+              }}
+            >
+              Comprar ahora
+            </Button>
+
+            <div className="pdp__mascot-tip" aria-hidden="true">
+              <Mascot variant="pointing" flip className="pdp__mascot" />
+              <span className="pdp__tip-bubble">¡Llevalo, no te vas a arrepentir!</span>
+            </div>
+
+            <div className="pdp__benefits">
+              <p>
+                <TruckIcon /> Envíos a todo el país
+              </p>
+              <p>
+                <CardIcon /> 3 cuotas sin interés
+              </p>
+              <p>
+                <BadgeIcon /> Producto original
+              </p>
+            </div>
+
+            <div className="pdp__accordions">
+              <Accordion title="Descripción" defaultOpen>
+                <p>{product.description}</p>
+              </Accordion>
+              <Accordion title="Especificaciones">
+                <table className="spec-table">
+                  <tbody>
+                    {product.specs.map(([k, v]) => (
+                      <tr key={k}>
+                        <th scope="row">{k}</th>
+                        <td>{v}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Accordion>
+              <Accordion title="Envíos y devoluciones">
+                <p>
+                  Despachamos en 24 hs hábiles. En AMBA llega en 24–48 hs; al interior, entre 2 y 5 días. Tenés 30 días para cambios de
+                  productos sin abrir.
+                </p>
+              </Accordion>
+            </div>
+          </div>
+        </div>
+
+        {related.length > 0 && (
+          <section className="section section--flush">
+            <Reveal className="section__head">
+              <h2 className="section__title">También te puede servir</h2>
+            </Reveal>
+            <div className="prodgrid">
+              {related.map((p, i) => (
+                <Reveal key={p.slug} delay={i * 60}>
+                  <ProductCard product={p} />
+                </Reveal>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+    </main>
+  )
+}
