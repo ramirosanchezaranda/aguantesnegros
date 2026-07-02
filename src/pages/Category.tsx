@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import Mascot from '../components/mascot/Mascot'
+import { MascotImage } from '../components/mascot/Mascot'
 import ProductCard from '../components/ProductCard'
 import { getCategory, productsByCategory } from '../data/catalog'
 import { Reveal } from '../components/ui'
@@ -39,7 +39,7 @@ export default function Category() {
             <h1 className="page__title">{category.name}</h1>
             <p className="page__sub">{category.tagline}. Marcas originales, stock real.</p>
           </div>
-          <Mascot variant={category.mascot} className="page__mascot" title={`Guantín — ${category.name}`} />
+          <MascotImage variant={category.mascot} className="page__mascot" title={`Guantín — ${category.name}`} />
         </header>
 
         <div className="toolbar">

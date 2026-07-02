@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import Mascot from '../components/mascot/Mascot'
+import Mascot, { MascotImage } from '../components/mascot/Mascot'
 import ProductCard from '../components/ProductCard'
 import { BRANDS, CATEGORIES, FAQS, PRODUCTS } from '../data/catalog'
 import { Accordion, BadgeIcon, Button, CardIcon, Marquee, Reveal, Spark4, TruckIcon } from '../components/ui'
@@ -64,7 +64,7 @@ export default function Home() {
           </div>
           <div className="hero__figure">
             <div className="hero__mascot-wrap">
-              <Mascot variant="hero" rays className="hero__mascot" title="Guantín saludando con la V" />
+              <MascotImage variant="hero" className="hero__mascot" title="Guantín saludando con la V" />
             </div>
             <span className="hero__scribble" aria-hidden="true" />
           </div>
@@ -115,7 +115,7 @@ export default function Home() {
             {CATEGORIES.slice(0, 8).map((c, i) => (
               <Reveal key={c.slug} delay={i * 50}>
                 <Link to={`/categoria/${c.slug}`} className="catcard">
-                  <Mascot variant={c.mascot} className="catcard__mascot" title={`Guantín — ${c.name}`} />
+                  <MascotImage variant={c.mascot} className="catcard__mascot" title={`Guantín — ${c.name}`} />
                   <h3>{c.name}</h3>
                   <p>{c.tagline}</p>
                 </Link>
@@ -195,7 +195,7 @@ export default function Home() {
               frecuentes
             </h2>
             <p className="faqhome__sub">Respondemos las dudas más comunes para que compres con confianza.</p>
-            <Mascot variant="question" className="faqhome__mascot" title="Guantín con una duda" />
+            <MascotImage variant="question" className="faqhome__mascot" title="Guantín con una duda" />
             <Link className="section__link" to="/faq">
               Ver todas <span aria-hidden="true">→</span>
             </Link>

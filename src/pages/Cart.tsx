@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import Mascot from '../components/mascot/Mascot'
+import Mascot, { MascotImage } from '../components/mascot/Mascot'
 import ProductArt from '../components/ProductArt'
 import { useCart } from '../context/CartContext'
 import { useMascotMood } from '../context/MascotMoodContext'
@@ -30,7 +30,7 @@ export default function Cart() {
     return (
       <main className="page">
         <div className="container cart-empty">
-          <Mascot variant="question" className="cart-empty__mascot" title="Guantín con el carrito vacío" />
+          <MascotImage variant="question" className="cart-empty__mascot" title="Guantín con el carrito vacío" />
           <h1 className="page__title">Tu carrito está vacío</h1>
           <p className="page__sub">Y Guantín está triste. Dale una alegría: hay cartuchos, tintas y agujas esperándote.</p>
           <Button to="/categorias" arrow>

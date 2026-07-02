@@ -505,6 +505,10 @@ export interface MascotProps {
 // sheet-tools: (0,0)=machine (1,0)=ink (2,0)=cup+machine (0,1)=cream (1,1)=tattooing (2,1)=needle
 // sheet-poses: (0,0)=peace (1,0)=looking-down (2,0)=arms-crossed (0,1)=walking (1,1)=rock-sparks (2,1)=pointing
 type SpriteRef = { sheet: 'tools' | 'poses'; col: 0 | 1 | 2; row: 0 | 1 }
+const SHEET_URL: Record<SpriteRef['sheet'], string> = {
+  tools: '/mascot/sheet-tools.png',
+  poses: '/mascot/sheet-poses.png',
+}
 const SPRITE: Partial<Record<MascotVariant, SpriteRef>> = {
   machine:  { sheet: 'tools', col: 0, row: 0 },
   ink:      { sheet: 'tools', col: 1, row: 0 },
@@ -533,7 +537,7 @@ export function MascotImage({
         src="/mascot/hero.png"
         alt={title ?? 'Guantín, la mascota de A Guantes Negros'}
         className={className}
-        style={{ mixBlendMode: 'multiply' }}
+        style={{ display: 'block' }}
         draggable={false}
       />
     )
@@ -542,17 +546,19 @@ export function MascotImage({
   if (!ref) return null
   const xPct = ref.col === 0 ? '0%' : ref.col === 1 ? '50%' : '100%'
   const yPct = ref.row === 0 ? '0%' : '100%'
+  // Cell size: tools 1369×1149 / (3×2), poses 1402×1122 / (3×2)
+  const aspect = ref.sheet === 'tools' ? '456 / 574' : '467 / 561'
   return (
     <div
       role="img"
       aria-label={title ?? 'Guantín, la mascota de A Guantes Negros'}
       className={className}
       style={{
-        backgroundImage: `url(/mascot/sheet-${ref.sheet}.png)`,
+        backgroundImage: `url(${SHEET_URL[ref.sheet]})`,
         backgroundSize: '300% 200%',
         backgroundPosition: `${xPct} ${yPct}`,
         backgroundRepeat: 'no-repeat',
-        mixBlendMode: 'multiply',
+        aspectRatio: aspect,
       }}
     />
   )

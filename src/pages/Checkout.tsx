@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { Link, Navigate } from 'react-router-dom'
-import Mascot from '../components/mascot/Mascot'
+import { MascotImage } from '../components/mascot/Mascot'
 import ProductArt from '../components/ProductArt'
 import { useCart } from '../context/CartContext'
 import { useMascotMood } from '../context/MascotMoodContext'
@@ -36,7 +36,7 @@ export default function Checkout() {
     return (
       <main className="page">
         <div className="container checkout-done">
-          <Mascot variant="rock" rays className="checkout-done__mascot" title="Guantín festejando tu compra" />
+          <MascotImage variant="rock" className="checkout-done__mascot" title="Guantín festejando tu compra" />
           <p className="checkout-done__eyebrow">Pedido #{orderNum.current}</p>
           <h1 className="page__title">¡Gracias, crack!</h1>
           <p className="page__sub">
