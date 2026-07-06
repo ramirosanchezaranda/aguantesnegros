@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
 import { MascotImage } from '../components/mascot/Mascot'
-import { CATEGORIES, productsByCategory } from '../data/catalog'
 import { Reveal } from '../components/ui'
+import { useCatalog } from '../context/CatalogContext'
 
 export default function Categories() {
+  const { categories, productsByCategory } = useCatalog()
   return (
     <main className="page">
       <div className="container">
@@ -19,7 +20,7 @@ export default function Categories() {
         </header>
 
         <div className="catgrid catgrid--page">
-          {CATEGORIES.map((c, i) => (
+          {categories.map((c, i) => (
             <Reveal key={c.slug} delay={i * 40}>
               <Link to={`/categoria/${c.slug}`} className="catcard catcard--big">
                 <MascotImage variant={c.mascot} className="catcard__mascot" title={`Guantín — ${c.name}`} />

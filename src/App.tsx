@@ -10,6 +10,10 @@ import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
 import Faq from './pages/Faq'
 import NotFound from './pages/NotFound'
+import AdminLayout from './pages/admin/AdminLayout'
+import AdminProducts from './pages/admin/AdminProducts'
+import AdminProductEdit from './pages/admin/AdminProductEdit'
+import AdminCategories from './pages/admin/AdminCategories'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -20,10 +24,13 @@ function ScrollToTop() {
 }
 
 export default function App() {
+  const { pathname } = useLocation()
+  const isAdmin = pathname.startsWith('/admin')
+
   return (
     <>
       <ScrollToTop />
-      <Header />
+      {!isAdmin && <Header />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/categorias" element={<Categories />} />
@@ -32,9 +39,15 @@ export default function App() {
         <Route path="/carrito" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/faq" element={<Faq />} />
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminProducts />} />
+          <Route path="productos/nuevo" element={<AdminProductEdit />} />
+          <Route path="productos/:slug" element={<AdminProductEdit />} />
+          <Route path="categorias" element={<AdminCategories />} />
+        </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <Footer />
+      {!isAdmin && <Footer />}
     </>
   )
 }

@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
 import LogoMark from './mascot/LogoMark'
-import { CATEGORIES } from '../data/catalog'
+import { useCatalog } from '../context/CatalogContext'
 import { InstagramIcon, WhatsAppIcon, Spark4 } from './ui'
 
 export default function Footer() {
+  const { categories } = useCatalog()
   return (
     <footer className="footer">
       <div className="container footer__grid">
@@ -34,7 +35,7 @@ export default function Footer() {
 
         <nav className="footer__col" aria-label="Tienda">
           <p className="footer__title">Tienda</p>
-          {CATEGORIES.slice(0, 6).map((c) => (
+          {categories.slice(0, 6).map((c) => (
             <Link key={c.slug} to={`/categoria/${c.slug}`}>
               {c.name}
             </Link>
@@ -68,6 +69,7 @@ export default function Footer() {
             <Link to="/faq">Términos</Link>
             <Link to="/faq">Privacidad</Link>
             <Link to="/faq">Defensa al consumidor</Link>
+            <Link to="/admin">Gestión</Link>
           </div>
         </div>
       </div>

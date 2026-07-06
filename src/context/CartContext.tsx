@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { getProduct, type Product } from '../data/catalog'
+import { stockOf, type Product } from '../data/catalog'
+import { useCatalog } from './CatalogContext'
 import { useMascotMood } from './MascotMoodContext'
 
 export const FREE_SHIPPING_THRESHOLD = 50000
@@ -44,6 +45,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   })
   const [coupon, setCoupon] = useState<string | null>(null)
   const { pulse } = useMascotMood()
+  const { getProduct } = useCatalog()
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
@@ -79,24 +81,33 @@ export function CartProvider({ children }: { children: ReactNode }) {
       },
       removeCoupon: () => setCoupon(null),
       add: (slug, qty = 1) => {
+        const prod = getProduct(slug)
+        const max = prod ? stockOf(prod) : Infinity
+        if (max <= 0) return
         setItems((prev) => {
           const found = prev.find((i) => i.slug === slug)
-          if (found) return prev.map((i) => (i.slug === slug ? { ...i, qty: i.qty + qty } : i))
-          return [...prev, { slug, qty }]
+          const nextQty = Math.min((found?.qty ?? 0) + qty, max)
+          if (found) return prev.map((i) => (i.slug === slug ? { ...i, qty: nextQty } : i))
+          return [...prev, { slug, qty: nextQty }]
         })
         pulse('excited')
       },
-      setQty: (slug, qty) =>
+      setQty: (slug, qty) => {
+        const prod = getProduct(slug)
+        const max = prod ? stockOf(prod) : Infinity
         setItems((prev) =>
-          qty <= 0 ? prev.filter((i) => i.slug !== slug) : prev.map((i) => (i.slug === slug ? { ...i, qty } : i)),
-        ),
+          qty <= 0
+            ? prev.filter((i) => i.slug !== slug)
+            : prev.map((i) => (i.slug === slug ? { ...i, qty: Math.min(qty, max) } : i)),
+        )
+      },
       remove: (slug) => setItems((prev) => prev.filter((i) => i.slug !== slug)),
       clear: () => {
         setItems([])
         setCoupon(null)
       },
     }
-  }, [items, coupon, pulse])
+  }, [items, coupon, pulse, getProduct])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

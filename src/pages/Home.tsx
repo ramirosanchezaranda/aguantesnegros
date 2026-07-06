@@ -2,12 +2,14 @@ import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import Mascot, { MascotImage } from '../components/mascot/Mascot'
 import ProductCard from '../components/ProductCard'
-import { BRANDS, CATEGORIES, FAQS, PRODUCTS } from '../data/catalog'
+import { BRANDS, FAQS } from '../data/catalog'
 import { Accordion, BadgeIcon, Button, CardIcon, Marquee, Reveal, Spark4, TruckIcon } from '../components/ui'
 import { useMascotMood } from '../context/MascotMoodContext'
+import { useCatalog } from '../context/CatalogContext'
 
 export default function Home() {
-  const featured = PRODUCTS.filter((p) => p.featured)
+  const { products, categories } = useCatalog()
+  const featured = products.filter((p) => p.featured)
   const { pulse } = useMascotMood()
   const heroRef = useRef<HTMLDivElement>(null)
 
@@ -112,7 +114,7 @@ export default function Home() {
             </Link>
           </Reveal>
           <div className="catgrid">
-            {CATEGORIES.slice(0, 8).map((c, i) => (
+            {categories.slice(0, 8).map((c, i) => (
               <Reveal key={c.slug} delay={i * 50}>
                 <Link to={`/categoria/${c.slug}`} className="catcard">
                   <MascotImage variant={c.mascot} className="catcard__mascot" title={`Guantín — ${c.name}`} />

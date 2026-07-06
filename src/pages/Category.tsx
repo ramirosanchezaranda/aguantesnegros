@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { MascotImage } from '../components/mascot/Mascot'
 import ProductCard from '../components/ProductCard'
-import { getCategory, productsByCategory } from '../data/catalog'
 import { Reveal } from '../components/ui'
+import { useCatalog } from '../context/CatalogContext'
 import NotFound from './NotFound'
 
 type Sort = 'featured' | 'price-asc' | 'price-desc' | 'rating'
@@ -11,6 +11,7 @@ type Sort = 'featured' | 'price-asc' | 'price-desc' | 'rating'
 export default function Category() {
   const { slug = '' } = useParams()
   const [sort, setSort] = useState<Sort>('featured')
+  const { getCategory, productsByCategory } = useCatalog()
   const category = getCategory(slug)
   if (!category) return <NotFound />
 

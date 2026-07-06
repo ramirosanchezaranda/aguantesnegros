@@ -6,3 +6,5 @@ dist
 npm-debug.log*
 tsconfig.tsbuildinfo
 preview-dist
+.env
+.env.local

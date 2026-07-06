@@ -3,12 +3,13 @@ import { Link, NavLink } from 'react-router-dom'
 import LogoMark from './mascot/LogoMark'
 import { useMascotMood } from '../context/MascotMoodContext'
 import { useCart } from '../context/CartContext'
+import { useCatalog } from '../context/CatalogContext'
 import { CartIcon, MenuIcon } from './ui'
-import { CATEGORIES } from '../data/catalog'
 
 export default function Header() {
   const { mood, pulse } = useMascotMood()
   const { count } = useCart()
+  const { categories } = useCatalog()
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [hovering, setHovering] = useState(false)
@@ -134,7 +135,7 @@ export default function Header() {
         >
           <nav className="drawer__nav container" aria-label="Categorías">
             <p className="drawer__eyebrow">Categorías</p>
-            {CATEGORIES.map((c, i) => (
+            {categories.map((c, i) => (
               <Link key={c.slug} to={`/categoria/${c.slug}`} onClick={() => setMenuOpen(false)} style={{ transitionDelay: `${60 + i * 30}ms` }}>
                 {c.name}
                 <span className="drawer__tag">{c.tagline}</span>

@@ -3,14 +3,16 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { MascotImage } from '../components/mascot/Mascot'
 import ProductArt from '../components/ProductArt'
 import ProductCard from '../components/ProductCard'
-import { getCategory, getProduct, PRODUCTS } from '../data/catalog'
+import { stockOf } from '../data/catalog'
 import { useCart } from '../context/CartContext'
+import { useCatalog } from '../context/CatalogContext'
 import { formatPrice, installments } from '../lib/format'
 import { Accordion, BadgeIcon, Button, CardIcon, Reveal, Stars, TruckIcon } from '../components/ui'
 import NotFound from './NotFound'
 
 export default function Product() {
   const { slug = '' } = useParams()
+  const { getProduct, getCategory, productsByCategory } = useCatalog()
   const product = getProduct(slug)
   const { add } = useCart()
   const navigate = useNavigate()
@@ -19,7 +21,11 @@ export default function Product() {
 
   if (!product) return <NotFound />
   const category = getCategory(product.category)
-  const related = PRODUCTS.filter((p) => p.category === product.category && p.slug !== product.slug).slice(0, 4)
+  const related = productsByCategory(product.category)
+    .filter((p) => p.slug !== product.slug)
+    .slice(0, 4)
+  const stock = stockOf(product)
+  const soldOut = stock <= 0
 
   return (
     <main className="page" key={product.slug}>
@@ -64,6 +70,10 @@ export default function Product() {
             </p>
             <p className="pdp__installments">{installments(product.price)}</p>
 
+            <p className={`pdp__stock ${soldOut ? 'pdp__stock--out' : stock <= 5 ? 'pdp__stock--low' : ''}`}>
+              {soldOut ? 'Agotado' : stock <= 5 ? `¡Últimas ${stock} unidades!` : 'En stock'}
+            </p>
+
             <ul className="pdp__perks">
               {product.specs.slice(0, 4).map(([k, v]) => (
                 <li key={k}>
@@ -74,21 +84,22 @@ export default function Product() {
 
             <div className="pdp__buy">
               <div className="qty">
-                <button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Restar">
+                <button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Restar" disabled={soldOut}>
                   −
                 </button>
                 <span aria-live="polite">{qty}</span>
-                <button onClick={() => setQty(qty + 1)} aria-label="Sumar">
+                <button onClick={() => setQty(Math.min(stock, qty + 1))} aria-label="Sumar" disabled={soldOut || qty >= stock}>
                   +
                 </button>
               </div>
-              <Button variant="red" className="pdp__cta" onClick={() => add(product.slug, qty)}>
-                Agregar al carrito
+              <Button variant="red" className="pdp__cta" onClick={() => add(product.slug, qty)} disabled={soldOut}>
+                {soldOut ? 'Sin stock' : 'Agregar al carrito'}
               </Button>
             </div>
             <Button
               variant="ghost"
               className="pdp__now"
+              disabled={soldOut}
               onClick={() => {
                 add(product.slug, qty)
                 navigate('/checkout')

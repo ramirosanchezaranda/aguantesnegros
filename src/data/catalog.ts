@@ -48,6 +48,16 @@ export interface Product {
   featured?: boolean
   description: string
   specs: [string, string][]
+  /** Unidades disponibles. Si falta (catálogo semilla), se asume DEFAULT_STOCK. */
+  stock?: number
+}
+
+/** Stock por defecto para productos del catálogo semilla que no lo declaran. */
+export const DEFAULT_STOCK = 20
+
+/** Stock efectivo de un producto, tolerando el catálogo semilla sin `stock`. */
+export function stockOf(product: Product): number {
+  return product.stock ?? DEFAULT_STOCK
 }
 
 export const CATEGORIES: Category[] = [

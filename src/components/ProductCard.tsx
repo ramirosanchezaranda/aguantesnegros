@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import type { Product } from '../data/catalog'
+import { stockOf, type Product } from '../data/catalog'
 import { formatPrice } from '../lib/format'
 import { useCart } from '../context/CartContext'
 import ProductArt from './ProductArt'
@@ -7,10 +7,15 @@ import { CartIcon } from './ui'
 
 export default function ProductCard({ product }: { product: Product }) {
   const { add } = useCart()
+  const soldOut = stockOf(product) <= 0
   return (
-    <article className="pcard">
+    <article className={`pcard ${soldOut ? 'pcard--out' : ''}`}>
       <Link to={`/producto/${product.slug}`} className="pcard__media" aria-label={product.name}>
-        {product.badge && <span className="pcard__badge">{product.badge}</span>}
+        {soldOut ? (
+          <span className="pcard__badge pcard__badge--out">Agotado</span>
+        ) : (
+          product.badge && <span className="pcard__badge">{product.badge}</span>
+        )}
         <ProductArt kind={product.art} className="pcard__art" />
       </Link>
       <div className="pcard__body">
@@ -26,7 +31,8 @@ export default function ProductCard({ product }: { product: Product }) {
           <button
             className="pcard__buy"
             onClick={() => add(product.slug)}
-            aria-label={`Agregar ${product.name} al carrito`}
+            disabled={soldOut}
+            aria-label={soldOut ? `${product.name} sin stock` : `Agregar ${product.name} al carrito`}
           >
             <CartIcon />
           </button>
