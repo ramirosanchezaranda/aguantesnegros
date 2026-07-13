@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import Header from './components/Header'
 import Footer from './components/Footer'
+import FaviconController from './components/FaviconController'
 import Home from './pages/Home'
 import Categories from './pages/Categories'
 import Category from './pages/Category'
@@ -29,6 +30,7 @@ export default function App() {
 
   return (
     <>
+      <FaviconController />
       <ScrollToTop />
       {!isAdmin && <Header />}
       <div className="route-fade" key={pathname}>
