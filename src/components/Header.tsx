@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import LogoMark from './mascot/LogoMark'
+import { MascotImage } from './mascot/Mascot'
 import { useMascotMood } from '../context/MascotMoodContext'
 import { useCart } from '../context/CartContext'
 import { useCatalog } from '../context/CatalogContext'
@@ -8,13 +8,12 @@ import { useTheme } from '../context/ThemeContext'
 import { CartIcon, MenuIcon, MoonIcon, SunIcon } from './ui'
 
 export default function Header() {
-  const { mood, pulse } = useMascotMood()
+  const { pulse } = useMascotMood()
   const { count } = useCart()
   const { categories } = useCatalog()
   const { theme, toggle } = useTheme()
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [hovering, setHovering] = useState(false)
   const drawerRef = useRef<HTMLDivElement>(null)
   const menuBtnRef = useRef<HTMLButtonElement>(null)
 
@@ -67,8 +66,6 @@ export default function Header() {
     return () => drawer.removeEventListener('keydown', trap)
   }, [menuOpen])
 
-  const logoMood = hovering && mood === 'happy' ? 'peek' : mood
-
   return (
     <>
       <div className="topbar">
@@ -101,15 +98,13 @@ export default function Header() {
           <Link
             to="/"
             className="logo"
-            onMouseEnter={() => setHovering(true)}
-            onMouseLeave={() => setHovering(false)}
             onClick={() => {
               setMenuOpen(false)
               pulse('excited', 900)
             }}
             aria-label="A Guantes Negros — inicio"
           >
-            <LogoMark mood={logoMood} className="logo__mark" />
+            <MascotImage variant="hero" className="logo__mark" title="A Guantes Negros" />
             <span className="logo__text">
               A&nbsp;Guantes
               <br />
