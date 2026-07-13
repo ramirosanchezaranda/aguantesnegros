@@ -1,9 +1,18 @@
 /* ==================================================================
    A GUANTES NEGROS — Design System
    Paleta: Negro #0B0B0B · Rojo #E53935 · Crema #F8F3EA · Gris #EFEFEF
-   Tipografía: Clash Display (Fontshare)
+   Tipografía: Clash Display (auto-hospedada, fuente variable)
    Espaciado: sistema de 8px
    ================================================================== */
+
+/* Clash Display — fuente variable auto-hospedada (200–700) */
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/ClashDisplay-Variable.woff2') format('woff2');
+  font-weight: 200 700;
+  font-display: swap;
+  font-style: normal;
+}
 
 :root {
   --ink: #0b0b0b;
@@ -2782,21 +2791,21 @@ html[data-theme='dark'] .footer {
   border-top: 1px solid var(--line);
 }
 
-/* El logo/mascota según tema: PNG en claro, SVG contorno en oscuro */
-.brand-mascot {
-  display: contents;
-}
+/* El logo/mascota usa el PNG real en ambos temas. En oscuro le agregamos
+   un reborde blanco (drop-shadows apilados sobre el alfa) para despegar la
+   silueta negra del fondo. El grosor se ajusta por contexto con --ol-w. */
 .brand-mascot__png {
   display: block;
 }
-.brand-mascot__svg {
-  display: none;
-}
 html[data-theme='dark'] .brand-mascot__png {
-  display: none;
+  --ol-w: 1.5px;
+  filter: drop-shadow(var(--ol-w) 0 0 #fff) drop-shadow(calc(-1 * var(--ol-w)) 0 0 #fff)
+    drop-shadow(0 var(--ol-w) 0 #fff) drop-shadow(0 calc(-1 * var(--ol-w)) 0 #fff)
+    drop-shadow(var(--ol-w) var(--ol-w) 0 #fff) drop-shadow(calc(-1 * var(--ol-w)) calc(-1 * var(--ol-w)) 0 #fff)
+    drop-shadow(calc(-1 * var(--ol-w)) var(--ol-w) 0 #fff) drop-shadow(var(--ol-w) calc(-1 * var(--ol-w)) 0 #fff);
 }
-html[data-theme='dark'] .brand-mascot__svg {
-  display: block;
+html[data-theme='dark'] .hero__mascot {
+  --ol-w: 2.5px;
 }
 
 /* ==================================================================
