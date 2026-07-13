@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { MascotImage } from '../components/mascot/Mascot'
+import BrandMascot from '../components/mascot/BrandMascot'
 import { Reveal } from '../components/ui'
 import { useCatalog } from '../context/CatalogContext'
 
@@ -16,14 +16,14 @@ export default function Categories() {
             <h1 className="page__title">Categorías</h1>
             <p className="page__sub">Encontrá todo lo que necesitás para tatuar con calidad y seguridad.</p>
           </div>
-          <MascotImage variant="rock" className="page__mascot" title="Guantín festejando" />
+          <BrandMascot variant="rock" className="page__mascot" title="Guantín festejando" />
         </header>
 
         <div className="catgrid catgrid--page">
           {categories.map((c, i) => (
             <Reveal key={c.slug} delay={i * 40}>
               <Link to={`/categoria/${c.slug}`} className="catcard catcard--big">
-                <MascotImage variant={c.mascot} className="catcard__mascot" title={`Guantín — ${c.name}`} />
+                <BrandMascot variant={c.mascot} className="catcard__mascot" title={`Guantín — ${c.name}`} />
                 <h2>{c.name}</h2>
                 <p>
                   {productsByCategory(c.slug).length}{' '}

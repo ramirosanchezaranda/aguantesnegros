@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import Mascot, { MascotImage } from '../components/mascot/Mascot'
+import Mascot from '../components/mascot/Mascot'
+import BrandMascot from '../components/mascot/BrandMascot'
 import ProductCard from '../components/ProductCard'
 import { BRANDS, FAQS } from '../data/catalog'
 import { Accordion, BadgeIcon, Button, CardIcon, Marquee, Reveal, Spark4, TruckIcon } from '../components/ui'
@@ -13,7 +14,7 @@ export default function Home() {
   const { pulse } = useMascotMood()
   const heroRef = useRef<HTMLDivElement>(null)
 
-  // B8: parallax throttled via requestAnimationFrame
+  // B8: parallax + scroll-shrink, throttled via requestAnimationFrame
   useEffect(() => {
     const hero = heroRef.current
     if (!hero || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
@@ -28,53 +29,65 @@ export default function Home() {
         hero.style.setProperty('--py', `${y * 10}px`)
       })
     }
+    let rafScroll = 0
+    const onScroll = () => {
+      cancelAnimationFrame(rafScroll)
+      rafScroll = requestAnimationFrame(() => {
+        const shrink = Math.max(0.9, 1 - window.scrollY / 2600)
+        hero.style.setProperty('--shrink', String(shrink))
+      })
+    }
     hero.addEventListener('mousemove', onMove)
-    return () => { hero.removeEventListener('mousemove', onMove); cancelAnimationFrame(raf) }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      hero.removeEventListener('mousemove', onMove)
+      window.removeEventListener('scroll', onScroll)
+      cancelAnimationFrame(raf)
+      cancelAnimationFrame(rafScroll)
+    }
   }, [])
 
   return (
     <main>
-      {/* HERO ------------------------------------------------------ */}
-      <section className="hero" ref={heroRef}>
-        <div className="container hero__grid">
-          <div className="hero__copy">
-            <p className="hero__eyebrow">
-              <Spark4 /> Insumos originales para tatuadores
-            </p>
-            <h1 className="hero__title">
-              Insumos
-              <br />
-              para
-              <br />
-              <em>
-                tatuar<span className="hero__dot">.</span>
-              </em>
-            </h1>
-            <p className="hero__sub">Todo lo que necesitás, en un solo lugar.</p>
-            <div className="hero__ctas">
-              <Button to="/categorias" arrow>
-                Ver productos
-              </Button>
-              <Button
-                to="/producto/cartuchos-black-sheep-1205rl-x20"
-                variant="ghost"
-                onMouseEnter={() => pulse('excited', 700)}
-              >
-                Comprar ahora
-              </Button>
-            </div>
+      {/* HERO — logo-first, coreografía de entrada ------------------ */}
+      <section className="hero hero--brand" ref={heroRef}>
+        <div className="container hero__stage">
+          <p className="hero__eyebrow intro intro--eyebrow">
+            <Spark4 /> Insumos originales para tatuadores <Spark4 />
+          </p>
+          <div className="hero__mascot-wrap intro intro--mascot">
+            <BrandMascot variant="hero" className="hero__mascot" title="Guantín, el logo de A Guantes Negros" />
           </div>
-          <div className="hero__figure">
-            <div className="hero__mascot-wrap">
-              <MascotImage variant="hero" className="hero__mascot" title="Guantín saludando con la V" />
-            </div>
-            <span className="hero__scribble" aria-hidden="true" />
+          <h1 className="hero__wordmark" aria-label="A Guantes Negros">
+            <span className="hero__wordline intro intro--w1">
+              <span>A&nbsp;Guantes</span>
+            </span>
+            <span className="hero__wordline intro intro--w2">
+              <span>
+                Negros<span className="hero__reg">®</span>
+              </span>
+            </span>
+          </h1>
+          <p className="hero__sub intro intro--sub">Insumos para tatuar. Todo lo que necesitás, en un solo lugar.</p>
+          <div className="hero__ctas intro intro--ctas">
+            <Button to="/categorias" arrow>
+              Ver productos
+            </Button>
+            <Button
+              to="/producto/cartuchos-black-sheep-1205rl-x20"
+              variant="ghost"
+              onMouseEnter={() => pulse('excited', 700)}
+            >
+              Comprar ahora
+            </Button>
           </div>
         </div>
-        <Marquee
-          className="hero__marquee"
-          items={['ENVÍOS A TODO EL PAÍS', '3 CUOTAS SIN INTERÉS', 'PRODUCTOS ORIGINALES', 'ATENCIÓN DE TATUADOR A TATUADOR']}
-        />
+        <div className="intro intro--marquee">
+          <Marquee
+            className="hero__marquee"
+            items={['ENVÍOS A TODO EL PAÍS', '3 CUOTAS SIN INTERÉS', 'PRODUCTOS ORIGINALES', 'ATENCIÓN DE TATUADOR A TATUADOR']}
+          />
+        </div>
       </section>
 
       {/* BENEFICIOS ------------------------------------------------ */}
@@ -117,7 +130,7 @@ export default function Home() {
             {categories.slice(0, 8).map((c, i) => (
               <Reveal key={c.slug} delay={i * 50}>
                 <Link to={`/categoria/${c.slug}`} className="catcard">
-                  <MascotImage variant={c.mascot} className="catcard__mascot" title={`Guantín — ${c.name}`} />
+                  <BrandMascot variant={c.mascot} className="catcard__mascot" title={`Guantín — ${c.name}`} />
                   <h3>{c.name}</h3>
                   <p>{c.tagline}</p>
                 </Link>
@@ -197,7 +210,7 @@ export default function Home() {
               frecuentes
             </h2>
             <p className="faqhome__sub">Respondemos las dudas más comunes para que compres con confianza.</p>
-            <MascotImage variant="question" className="faqhome__mascot" title="Guantín con una duda" />
+            <BrandMascot variant="question" className="faqhome__mascot" title="Guantín con una duda" />
             <Link className="section__link" to="/faq">
               Ver todas <span aria-hidden="true">→</span>
             </Link>

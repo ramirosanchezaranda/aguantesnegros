@@ -4,12 +4,14 @@ import LogoMark from './mascot/LogoMark'
 import { useMascotMood } from '../context/MascotMoodContext'
 import { useCart } from '../context/CartContext'
 import { useCatalog } from '../context/CatalogContext'
-import { CartIcon, MenuIcon } from './ui'
+import { useTheme } from '../context/ThemeContext'
+import { CartIcon, MenuIcon, MoonIcon, SunIcon } from './ui'
 
 export default function Header() {
   const { mood, pulse } = useMascotMood()
   const { count } = useCart()
   const { categories } = useCatalog()
+  const { theme, toggle } = useTheme()
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [hovering, setHovering] = useState(false)
@@ -116,6 +118,14 @@ export default function Header() {
           </Link>
 
           <div className="header__actions">
+            <button
+              className="header__icon header__theme"
+              onClick={toggle}
+              aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+              aria-pressed={theme === 'dark'}
+            >
+              {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+            </button>
             <Link to="/carrito" className="header__icon header__cart" aria-label={`Carrito, ${count} productos`}>
               <CartIcon />
               {count > 0 && (

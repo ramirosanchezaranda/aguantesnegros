@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { MascotImage } from '../components/mascot/Mascot'
+import BrandMascot from '../components/mascot/BrandMascot'
 import ProductArt from '../components/ProductArt'
 import ProductCard from '../components/ProductCard'
 import { stockOf } from '../data/catalog'
@@ -109,7 +109,7 @@ export default function Product() {
             </Button>
 
             <div className="pdp__mascot-tip" aria-hidden="true">
-              <MascotImage variant="pointing" className="pdp__mascot" title="Guantín recomendando el producto" />
+              <BrandMascot variant="pointing" className="pdp__mascot" title="Guantín recomendando el producto" />
               <span className="pdp__tip-bubble">¡Llevalo, no te vas a arrepentir!</span>
             </div>
 

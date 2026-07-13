@@ -4,7 +4,7 @@ import { useAdminAuth } from '../../context/AdminAuthContext'
 import { backendName } from '../../lib/catalog'
 import { hasSupabase } from '../../lib/supabase'
 import { Button } from '../../components/ui'
-import { MascotImage } from '../../components/mascot/Mascot'
+import BrandMascot from '../../components/mascot/BrandMascot'
 
 export default function AdminLogin() {
   const { signIn } = useAdminAuth()
@@ -29,7 +29,7 @@ export default function AdminLogin() {
   return (
     <main className="admin-login">
       <form className="admin-login__card" onSubmit={submit}>
-        <MascotImage variant="question" className="admin-login__mascot" title="Guantín en la puerta" />
+        <BrandMascot variant="question" className="admin-login__mascot" title="Guantín en la puerta" />
         <h1 className="admin-login__title">Panel de gestión</h1>
         <p className="admin-login__sub">Ingresá para administrar productos y stock.</p>
 

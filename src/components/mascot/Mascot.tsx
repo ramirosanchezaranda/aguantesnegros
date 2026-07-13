@@ -537,7 +537,6 @@ export function MascotImage({
         src="/mascot/hero.png"
         alt={title ?? 'Guantín, la mascota de A Guantes Negros'}
         className={className}
-        style={{ display: 'block' }}
         draggable={false}
       />
     )

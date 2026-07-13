@@ -7,6 +7,18 @@
     <meta name="description" content="A Guantes Negros — Insumos para tatuar. Máquinas, agujas, tintas y todo lo que necesitás, en un solo lugar. Envíos a todo el país." />
     <meta name="theme-color" content="#0B0B0B" />
     <title>A Guantes Negros — Insumos para tatuar</title>
+    <script>
+      // Estampa el tema antes del primer paint para evitar flash (FOUC)
+      try {
+        var t = localStorage.getItem('agn-theme')
+        if (t !== 'light' && t !== 'dark') {
+          t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
+        document.documentElement.dataset.theme = t
+      } catch (e) {
+        document.documentElement.dataset.theme = 'light'
+      }
+    </script>
     <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
     <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
     <link

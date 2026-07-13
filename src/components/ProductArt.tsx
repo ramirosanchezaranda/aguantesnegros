@@ -1,6 +1,6 @@
 import type { ArtKind } from '../data/catalog'
 
-const INK = '#0B0B0B'
+const INK = 'currentColor'
 const RED = '#E53935'
 
 /**

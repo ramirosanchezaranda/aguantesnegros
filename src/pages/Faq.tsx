@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { MascotImage } from '../components/mascot/Mascot'
+import BrandMascot from '../components/mascot/BrandMascot'
 import { FAQS } from '../data/catalog'
 import { Accordion, Button, Reveal } from '../components/ui'
 
@@ -19,7 +19,7 @@ export default function Faq() {
             </h1>
             <p className="page__sub">Respondemos las dudas más comunes para que compres con confianza.</p>
           </div>
-          <MascotImage variant="question" className="page__mascot" title="Guantín con un signo de pregunta" />
+          <BrandMascot variant="question" className="page__mascot" title="Guantín con un signo de pregunta" />
         </header>
 
         <div className="faq-list">

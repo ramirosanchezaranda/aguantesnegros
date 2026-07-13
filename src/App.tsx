@@ -31,22 +31,24 @@ export default function App() {
     <>
       <ScrollToTop />
       {!isAdmin && <Header />}
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/categorias" element={<Categories />} />
-        <Route path="/categoria/:slug" element={<Category />} />
-        <Route path="/producto/:slug" element={<Product />} />
-        <Route path="/carrito" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/faq" element={<Faq />} />
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<AdminProducts />} />
-          <Route path="productos/nuevo" element={<AdminProductEdit />} />
-          <Route path="productos/:slug" element={<AdminProductEdit />} />
-          <Route path="categorias" element={<AdminCategories />} />
-        </Route>
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <div className="route-fade" key={pathname}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/categorias" element={<Categories />} />
+          <Route path="/categoria/:slug" element={<Category />} />
+          <Route path="/producto/:slug" element={<Product />} />
+          <Route path="/carrito" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/faq" element={<Faq />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminProducts />} />
+            <Route path="productos/nuevo" element={<AdminProductEdit />} />
+            <Route path="productos/:slug" element={<AdminProductEdit />} />
+            <Route path="categorias" element={<AdminCategories />} />
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
       {!isAdmin && <Footer />}
     </>
   )

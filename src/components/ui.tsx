@@ -24,7 +24,13 @@ export function Button({
   const cls = `btn btn--${variant} ${className}`
   const inner = (
     <>
-      <span className="btn__label">{children}</span>
+      {/* Doble label para el hover deslizante (firma hellohello) */}
+      <span className="btn__label">
+        <span className="btn__label-inner">{children}</span>
+        <span className="btn__label-inner btn__label-inner--ghost" aria-hidden="true">
+          {children}
+        </span>
+      </span>
       {arrow && <ArrowIcon className="btn__arrow" />}
     </>
   )
@@ -87,6 +93,23 @@ export function UserIcon({ className }: { className?: string }) {
     <svg viewBox="0 0 24 24" width={22} height={22} className={className} {...iconProps} aria-hidden="true">
       <circle cx={12} cy={8} r={4} />
       <path d="M4.5 20.5 a7.5 7.5 0 0 1 15 0" />
+    </svg>
+  )
+}
+
+export function SunIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" width={20} height={20} className={className} {...iconProps} aria-hidden="true">
+      <circle cx={12} cy={12} r={4.2} />
+      <path d="M12 2.5 v2.4 M12 19.1 v2.4 M2.5 12 h2.4 M19.1 12 h2.4 M5 5 l1.7 1.7 M17.3 17.3 L19 19 M19 5 l-1.7 1.7 M6.7 17.3 L5 19" />
+    </svg>
+  )
+}
+
+export function MoonIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" width={20} height={20} className={className} {...iconProps} aria-hidden="true">
+      <path d="M20.5 14.5 A8.5 8.5 0 1 1 9.5 3.5 a7 7 0 0 0 11 11 Z" />
     </svg>
   )
 }
@@ -154,8 +177,8 @@ export function StarIcon({ filled = true }: { filled?: boolean }) {
     <svg viewBox="0 0 20 20" width={15} height={15} aria-hidden="true">
       <path
         d="M10 1.7 l2.5 5.1 5.6 .8 -4 4 1 5.6 -5.1 -2.7 -5.1 2.7 1 -5.6 -4 -4 5.6 -.8 Z"
-        fill={filled ? '#0B0B0B' : 'none'}
-        stroke="#0B0B0B"
+        fill={filled ? 'currentColor' : 'none'}
+        stroke="currentColor"
         strokeWidth={1.4}
         strokeLinejoin="round"
       />
@@ -200,11 +223,13 @@ export function Reveal({
   children,
   delay = 0,
   className = '',
+  variant = 'up',
   as: Tag = 'div',
 }: {
   children: ReactNode
   delay?: number
   className?: string
+  variant?: 'up' | 'clip' | 'scale'
   as?: 'div' | 'section' | 'li' | 'article'
 }) {
   const ref = useRef<HTMLElement | null>(null)
@@ -235,7 +260,7 @@ export function Reveal({
   return (
     <Tag
       ref={ref as never}
-      className={`reveal ${shown ? 'reveal--in' : ''} ${animated ? 'reveal--animated' : ''} ${className}`}
+      className={`reveal reveal--${variant} ${shown ? 'reveal--in' : ''} ${animated ? 'reveal--animated' : ''} ${className}`}
       style={{ transitionDelay: animated ? `${delay}ms` : '0ms' }}
     >
       {children}
@@ -247,7 +272,15 @@ export function Reveal({
 /* Marquee                                                           */
 /* ---------------------------------------------------------------- */
 
-export function Marquee({ items, className = '' }: { items: string[]; className?: string }) {
+export function Marquee({
+  items,
+  className = '',
+  reverse,
+}: {
+  items: string[]
+  className?: string
+  reverse?: boolean
+}) {
   const row = items.map((t, i) => (
     <span className="marquee__item" key={i}>
       {t}
@@ -255,7 +288,7 @@ export function Marquee({ items, className = '' }: { items: string[]; className?
     </span>
   ))
   return (
-    <div className={`marquee ${className}`} aria-hidden="true">
+    <div className={`marquee ${reverse ? 'marquee--reverse' : ''} ${className}`} aria-hidden="true">
       <div className="marquee__track">
         {row}
         {row}
