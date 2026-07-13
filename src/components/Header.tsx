@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { MascotImage } from './mascot/Mascot'
 import { useMascotMood } from '../context/MascotMoodContext'
 import { useCart } from '../context/CartContext'
 import { useCatalog } from '../context/CatalogContext'
@@ -104,7 +103,7 @@ export default function Header() {
             }}
             aria-label="A Guantes Negros — inicio"
           >
-            <MascotImage variant="hero" className="logo__mark" title="A Guantes Negros" />
+            <img src="/mascot/logomark.png" className="logo__mark" alt="A Guantes Negros" draggable={false} />
             <span className="logo__text">
               A&nbsp;Guantes
               <br />
