@@ -1,10 +1,16 @@
-// Favicon dinámico de Guantín: cambia de expresión según el estado de ánimo
-// del mascot (que a su vez reacciona a las interacciones del usuario).
-// Se dibuja en SVG (negro relleno + contorno blanco) para que lea nítido a
-// 16px y funcione tanto en pestañas claras como oscuras.
+// Favicon de Guantín. El estado en reposo usa el ARTE REAL del logo
+// (PNG, recortado a los dedos + cara para que lea a tamaño de pestaña),
+// con variante para pestañas claras (arte negro) y oscuras (con reborde
+// blanco). Reacciona a las interacciones cambiando de expresión.
 
 export type FaviconMood = 'happy' | 'surprised' | 'sad'
 
+// Arte real del logo (generado desde public/mascot/hero.png)
+const REAL_LIGHT = '/favicon/guantin-32.png'
+const REAL_DARK = '/favicon/guantin-32-dark.png'
+
+// Expresiones reactivas (breves). No hay arte raster de estas caras, así que
+// se dibujan en SVG con el mismo encuadre (dedos + lentes + boca).
 function svg(mouth: string): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 510">
     <g fill="#0B0B0B" stroke="#fff" stroke-width="14" stroke-linejoin="round">
@@ -19,19 +25,18 @@ function svg(mouth: string): string {
   </svg>`
 }
 
-const MOUTHS: Record<FaviconMood, string> = {
-  // Sonrisa abierta con dientes
-  happy: `<path d="M152 402 Q220 438 288 402 C296 448 262 480 220 482 C178 480 144 448 152 402 Z" fill="#0B0B0B" stroke="#fff" stroke-width="9" stroke-linejoin="round"/>
-    <rect x="193" y="417" width="25" height="32" rx="7" fill="#fff"/>
-    <rect x="222" y="417" width="25" height="32" rx="7" fill="#fff"/>`,
-  // Boca en "O" (asombro)
-  surprised: `<ellipse cx="220" cy="432" rx="33" ry="42" fill="#0B0B0B" stroke="#fff" stroke-width="9"/>`,
-  // Boca hacia abajo (tristeza)
-  sad: `<path d="M170 458 Q220 410 270 458" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round"/>`,
+const SURPRISED = `<ellipse cx="220" cy="432" rx="33" ry="42" fill="#0B0B0B" stroke="#fff" stroke-width="9"/>`
+const SAD = `<path d="M170 458 Q220 410 270 458" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round"/>`
+
+interface Icon {
+  href: string
+  type: string
 }
 
-export function faviconDataUri(mood: FaviconMood): string {
-  return 'data:image/svg+xml,' + encodeURIComponent(svg(MOUTHS[mood]))
+function icon(mood: FaviconMood, dark: boolean): Icon {
+  if (mood === 'surprised') return { href: 'data:image/svg+xml,' + encodeURIComponent(svg(SURPRISED)), type: 'image/svg+xml' }
+  if (mood === 'sad') return { href: 'data:image/svg+xml,' + encodeURIComponent(svg(SAD)), type: 'image/svg+xml' }
+  return { href: dark ? REAL_DARK : REAL_LIGHT, type: 'image/png' }
 }
 
 /** Traduce el estado de ánimo del mascot a una de las 3 caras del favicon. */
@@ -47,17 +52,19 @@ export function moodToFavicon(mood: string): FaviconMood {
   }
 }
 
-let current: FaviconMood | null = null
+let currentKey = ''
 
-export function applyFavicon(mood: FaviconMood): void {
-  if (mood === current) return
-  current = mood
+export function applyFavicon(mood: FaviconMood, dark: boolean): void {
+  const key = `${mood}-${dark ? 'd' : 'l'}`
+  if (key === currentKey) return
+  currentKey = key
+  const { href, type } = icon(mood, dark)
   let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']")
   if (!link) {
     link = document.createElement('link')
     link.rel = 'icon'
     document.head.appendChild(link)
   }
-  link.type = 'image/svg+xml'
-  link.href = faviconDataUri(mood)
+  link.type = type
+  link.href = href
 }
