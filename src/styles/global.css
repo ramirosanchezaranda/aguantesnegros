@@ -231,13 +231,6 @@ fieldset {
   height: 46px;
   object-fit: contain;
   transition: transform 0.35s var(--ease-spring);
-  /* El header es oscuro en ambos temas: el logo real (negro) siempre lleva
-     reborde blanco para despegarse del fondo. */
-  --ol-w: 1px;
-  filter: drop-shadow(var(--ol-w) 0 0 #fff) drop-shadow(calc(-1 * var(--ol-w)) 0 0 #fff)
-    drop-shadow(0 var(--ol-w) 0 #fff) drop-shadow(0 calc(-1 * var(--ol-w)) 0 #fff)
-    drop-shadow(var(--ol-w) var(--ol-w) 0 #fff) drop-shadow(calc(-1 * var(--ol-w)) calc(-1 * var(--ol-w)) 0 #fff)
-    drop-shadow(calc(-1 * var(--ol-w)) var(--ol-w) 0 #fff) drop-shadow(var(--ol-w) calc(-1 * var(--ol-w)) 0 #fff);
 }
 
 .logo:hover .logo__mark {
@@ -1997,12 +1990,6 @@ fieldset {
   width: auto;
   height: 54px;
   object-fit: contain;
-  /* El footer es oscuro en ambos temas: reborde blanco siempre. */
-  --ol-w: 1px;
-  filter: drop-shadow(var(--ol-w) 0 0 #fff) drop-shadow(calc(-1 * var(--ol-w)) 0 0 #fff)
-    drop-shadow(0 var(--ol-w) 0 #fff) drop-shadow(0 calc(-1 * var(--ol-w)) 0 #fff)
-    drop-shadow(var(--ol-w) var(--ol-w) 0 #fff) drop-shadow(calc(-1 * var(--ol-w)) calc(-1 * var(--ol-w)) 0 #fff)
-    drop-shadow(calc(-1 * var(--ol-w)) var(--ol-w) 0 #fff) drop-shadow(var(--ol-w) calc(-1 * var(--ol-w)) 0 #fff);
 }
 
 .footer__claim {
