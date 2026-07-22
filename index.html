@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon/guantin-32.png" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/png" href="/favicon/guantin-32-dark.png" media="(prefers-color-scheme: dark)" />
+    <link rel="apple-touch-icon" href="/favicon/guantin-180.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A Guantes Negros — Insumos para tatuar. Máquinas, agujas, tintas y todo lo que necesitás, en un solo lugar. Envíos a todo el país." />
+    <meta name="theme-color" content="#0B0B0B" />
+    <title>A Guantes Negros — Insumos para tatuar</title>
+    <script>
+      // Estampa el tema antes del primer paint para evitar flash (FOUC)
+      try {
+        var t = localStorage.getItem('agn-theme')
+        if (t !== 'light' && t !== 'dark') {
+          t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
+        document.documentElement.dataset.theme = t
+      } catch (e) {
+        document.documentElement.dataset.theme = 'light'
+      }
+    </script>
+    <link
+      rel="preload"
+      href="/fonts/ClashDisplay-Variable.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
