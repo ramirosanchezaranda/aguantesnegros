@@ -68,7 +68,7 @@ export default function Cart() {
               <div className="cart__row" key={product.slug}>
                 <div className="cart__product">
                   <Link to={`/producto/${product.slug}`} className="cart__thumb">
-                    <ProductArt kind={product.art} />
+                    <ProductArt category={product.category} />
                   </Link>
                   <div>
                     <p className="cart__brand">{product.brand}</p>
