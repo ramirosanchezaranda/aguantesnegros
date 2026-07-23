@@ -5,6 +5,7 @@ import { getRepo, resetLocalCatalog } from '../../lib/catalog'
 import { hasSupabase } from '../../lib/supabase'
 import { stockOf, type Product } from '../../data/catalog'
 import { formatPrice } from '../../lib/format'
+import ProductArt from '../../components/ProductArt'
 
 export default function AdminProducts() {
   const { products, categories, reload, loading, error } = useCatalog()
@@ -51,6 +52,23 @@ export default function AdminProducts() {
 
   const lowStock = products.filter((p) => stockOf(p) <= 5).length
 
+  const stockInput = (p: Product) => {
+    const stock = stockOf(p)
+    return (
+      <input
+        type="number"
+        min={0}
+        defaultValue={stock}
+        className={`admin-stock ${stock <= 0 ? 'admin-stock--out' : stock <= 5 ? 'admin-stock--low' : ''}`}
+        onBlur={(e) => commitStock(p, e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+        }}
+        aria-label={`Stock de ${p.name}`}
+      />
+    )
+  }
+
   return (
     <div className="admin-page">
       <header className="admin-page__head">
@@ -90,7 +108,6 @@ export default function AdminProducts() {
           </thead>
           <tbody>
             {products.map((p) => {
-              const stock = stockOf(p)
               return (
                 <tr key={p.slug} className={busy === p.slug ? 'admin-row--busy' : ''}>
                   <td>
@@ -99,19 +116,7 @@ export default function AdminProducts() {
                   </td>
                   <td>{categoryName(p.category)}</td>
                   <td>{formatPrice(p.price)}</td>
-                  <td>
-                    <input
-                      type="number"
-                      min={0}
-                      defaultValue={stock}
-                      className={`admin-stock ${stock <= 0 ? 'admin-stock--out' : stock <= 5 ? 'admin-stock--low' : ''}`}
-                      onBlur={(e) => commitStock(p, e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
-                      }}
-                      aria-label={`Stock de ${p.name}`}
-                    />
-                  </td>
+                  <td>{stockInput(p)}</td>
                   <td>{p.featured ? '★' : '—'}</td>
                   <td className="admin-table__row-actions">
                     <Link to={`/admin/productos/${p.slug}`} className="admin-btn admin-btn--sm">
@@ -130,6 +135,48 @@ export default function AdminProducts() {
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Vista de cards (mobile) */}
+      <div className="admin-cards">
+        {products.map((p) => (
+          <article key={p.slug} className={`admin-card ${busy === p.slug ? 'admin-row--busy' : ''}`}>
+            <div className="admin-card__top">
+              <span className="admin-card__thumb">
+                <ProductArt category={p.category} />
+              </span>
+              <div className="admin-card__head">
+                <strong>{p.name}</strong>
+                <span className="admin-card__sub">
+                  {p.brand} · {categoryName(p.category)}
+                </span>
+                {p.featured && <span className="admin-card__star">★ Destacado</span>}
+              </div>
+            </div>
+            <div className="admin-card__grid">
+              <div className="admin-card__field">
+                <span>Precio</span>
+                <span className="admin-card__value">{formatPrice(p.price)}</span>
+              </div>
+              <label className="admin-card__field">
+                <span>Stock</span>
+                {stockInput(p)}
+              </label>
+            </div>
+            <div className="admin-card__actions">
+              <Link to={`/admin/productos/${p.slug}`} className="admin-btn admin-btn--sm admin-btn--ghost">
+                Editar
+              </Link>
+              <button
+                className="admin-btn admin-btn--sm admin-btn--danger"
+                onClick={() => remove(p)}
+                disabled={busy === p.slug}
+              >
+                Eliminar
+              </button>
+            </div>
+          </article>
+        ))}
       </div>
     </div>
   )
