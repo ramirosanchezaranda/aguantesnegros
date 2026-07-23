@@ -2506,6 +2506,14 @@ fieldset {
 .admin-btn--ghost:hover {
   background: var(--tint);
 }
+.admin-btn--white {
+  background: #fff;
+  color: #0b0b0b;
+  border-color: var(--line);
+}
+.admin-btn--white:hover {
+  background: #f1ece2;
+}
 .admin-btn--sm {
   padding: 6px 12px;
   font-size: 13px;
@@ -2594,6 +2602,9 @@ fieldset {
   border-radius: var(--r-md);
   box-shadow: var(--shadow-card);
   padding: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
 }
 .admin-form__grid {
   display: grid;
@@ -2654,7 +2665,6 @@ fieldset {
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   padding: var(--s-3);
-  margin-top: var(--s-3);
 }
 .admin-specs legend {
   font-size: 13px;
@@ -2670,6 +2680,7 @@ fieldset {
 }
 .admin-specs__row input {
   font: inherit;
+  min-width: 0;
   padding: 8px 10px;
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
@@ -2679,7 +2690,6 @@ fieldset {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: var(--s-4);
 }
 
 .admin-cats {
@@ -3235,5 +3245,31 @@ html[data-theme='dark'] .hero__mascot {
   .admin-cards {
     display: grid;
     gap: var(--s-2);
+  }
+}
+
+/* Admin — ajustes para teléfonos (360–430px) y small tablets */
+@media (max-width: 600px) {
+  /* Especificaciones: atributo a lo ancho, valor + quitar debajo (vertical) */
+  .admin-specs__row {
+    grid-template-columns: 1fr auto;
+  }
+  .admin-specs__row input:first-child {
+    grid-column: 1 / -1;
+  }
+  /* Acciones del formulario a lo ancho y apiladas (primario arriba) */
+  .admin-form__foot {
+    flex-direction: column-reverse;
+  }
+  .admin-form__foot .admin-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  /* Encabezado del panel: que no desborde */
+  .admin-page__actions {
+    flex-wrap: wrap;
+  }
+  .admin__main {
+    padding: var(--s-2);
   }
 }

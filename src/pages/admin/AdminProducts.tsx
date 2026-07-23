@@ -164,7 +164,7 @@ export default function AdminProducts() {
               </label>
             </div>
             <div className="admin-card__actions">
-              <Link to={`/admin/productos/${p.slug}`} className="admin-btn admin-btn--sm admin-btn--ghost">
+              <Link to={`/admin/productos/${p.slug}`} className="admin-btn admin-btn--sm admin-btn--white">
                 Editar
               </Link>
               <button
