@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import LogoMascot from './mascot/LogoMascot'
 import { useCatalog } from '../context/CatalogContext'
 import { InstagramIcon, WhatsAppIcon, Spark4 } from './ui'
 
@@ -9,7 +10,7 @@ export default function Footer() {
       <div className="container footer__grid">
         <div className="footer__brand">
           <div className="footer__logo">
-            <img src="/mascot/logomark.png" className="footer__mark" alt="A Guantes Negros" draggable={false} />
+            <LogoMascot className="footer__mark" />
             <span>
               A&nbsp;Guantes
               <br />

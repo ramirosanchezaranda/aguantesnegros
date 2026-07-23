@@ -16,7 +16,7 @@ export default function ProductCard({ product }: { product: Product }) {
         ) : (
           product.badge && <span className="pcard__badge">{product.badge}</span>
         )}
-        <ProductArt kind={product.art} className="pcard__art" />
+        <ProductArt category={product.category} className="pcard__art" />
       </Link>
       <div className="pcard__body">
         <p className="pcard__brand">{product.brand}</p>
