@@ -2427,6 +2427,8 @@ fieldset {
 .admin__main {
   padding: var(--s-5) var(--s-5);
   overflow-x: auto;
+  /* Sin esto la pista del grid crece con la tabla y el panel desborda. */
+  min-width: 0;
 }
 
 .admin-page__head {
@@ -3152,14 +3154,21 @@ html[data-theme='dark'] .hero__mascot {
 }
 
 /* ==================================================================
-   ADMIN — vista de cards para productos en mobile
+   ADMIN — vista de cards para productos (teléfonos, tablets y
+   ventanas angostas). La tabla queda solo en pantallas anchas.
    ================================================================== */
 .admin-cards {
   display: none;
 }
 
+/* La card es siempre una superficie clara: fija sus propios colores en vez
+   de heredar los del panel, que en modo oscuro son claros e ilegibles acá. */
 .admin-card {
+  --card-ink: #0b0b0b;
+  --card-muted: rgba(11, 11, 11, 0.58);
+  --card-line: rgba(11, 11, 11, 0.14);
   background: #fff;
+  color: var(--card-ink);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-card);
   padding: var(--s-3);
@@ -3193,12 +3202,15 @@ html[data-theme='dark'] .hero__mascot {
   min-width: 0;
 }
 .admin-card__head strong {
+  color: var(--card-ink);
   font-size: 15px;
   line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 .admin-card__sub {
   font-size: 12px;
-  color: rgba(11, 11, 11, 0.55);
+  color: var(--card-muted);
+  overflow-wrap: anywhere;
 }
 .admin-card__star {
   font-size: 11px;
@@ -3218,15 +3230,19 @@ html[data-theme='dark'] .hero__mascot {
   gap: 4px;
   font-size: 12px;
   font-weight: 600;
-  color: rgba(11, 11, 11, 0.6);
+  color: var(--card-muted);
 }
 .admin-card__value {
   font-size: 17px;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--card-ink);
 }
-.admin-card__field .admin-stock {
+/* El input de stock también vive sobre la card: colores propios. */
+.admin-card .admin-stock {
   width: 100%;
+  background: #fff;
+  color: var(--card-ink);
+  border-color: var(--card-line);
 }
 .admin-card__actions {
   display: flex;
@@ -3237,16 +3253,45 @@ html[data-theme='dark'] .hero__mascot {
   justify-content: center;
   padding: 10px 12px;
 }
+.admin-card__actions .admin-btn--white {
+  background: #fff;
+  color: var(--card-ink);
+  border-color: var(--card-line);
+}
+.admin-card__actions .admin-btn--white:hover {
+  background: #f1ece2;
+}
 
-@media (max-width: 720px) {
-  .admin-table-wrap {
+/* Cards en vez de tabla hasta 1024px: cubre teléfonos, tablets (iPad
+   vertical y horizontal) y ventanas de escritorio achicadas, donde la
+   tabla quedaba cortada a la derecha. */
+@media (max-width: 1024px) {
+  .admin-table-wrap--collapse {
     display: none;
+  }
+  /* Categorías: lista y formulario uno debajo del otro, como los productos. */
+  .admin-cats {
+    grid-template-columns: 1fr;
   }
   .admin-cards {
     display: grid;
     gap: var(--s-2);
+    grid-template-columns: 1fr;
   }
 }
+
+/* A partir de ~640px entran dos columnas de cards, y tres cerca de 1024. */
+@media (min-width: 640px) and (max-width: 1024px) {
+  .admin-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 900px) and (max-width: 1024px) {
+  .admin-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 
 /* Admin — ajustes para teléfonos (360–430px) y small tablets */
 @media (max-width: 600px) {

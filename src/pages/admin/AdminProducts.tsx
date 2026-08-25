@@ -94,7 +94,7 @@ export default function AdminProducts() {
       {msg && <p className="admin-alert">{msg}</p>}
       {loading && <p className="admin-page__meta">Cargando…</p>}
 
-      <div className="admin-table-wrap">
+      <div className="admin-table-wrap admin-table-wrap--collapse">
         <table className="admin-table">
           <thead>
             <tr>
