@@ -168,7 +168,7 @@ export default function Checkout() {
               {entries.map(({ product, qty }) => (
                 <li key={product.slug}>
                   <span className="summary__thumb">
-                    <ProductArt category={product.category} />
+                    <ProductArt product={product} />
                   </span>
                   <span className="summary__item-name">
                     {product.name}

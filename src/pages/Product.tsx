@@ -47,13 +47,13 @@ export default function Product() {
                   onClick={() => setShot(i)}
                   aria-label={`Vista ${i + 1}`}
                 >
-                  <ProductArt category={product.category} />
+                  <ProductArt product={product} />
                 </button>
               ))}
             </div>
             <div className="pdp__stage">
               {product.badge && <span className="pcard__badge">{product.badge}</span>}
-              <ProductArt category={product.category} className={`pdp__art pdp__art--${shot}`} />
+              <ProductArt product={product} className={`pdp__art pdp__art--${shot}`} />
             </div>
           </div>
 

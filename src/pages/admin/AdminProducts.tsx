@@ -143,7 +143,7 @@ export default function AdminProducts() {
           <article key={p.slug} className={`admin-card ${busy === p.slug ? 'admin-row--busy' : ''}`}>
             <div className="admin-card__top">
               <span className="admin-card__thumb">
-                <ProductArt category={p.category} />
+                <ProductArt product={p} />
               </span>
               <div className="admin-card__head">
                 <strong>{p.name}</strong>

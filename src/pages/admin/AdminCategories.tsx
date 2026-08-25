@@ -21,6 +21,7 @@ const ART_KINDS: ArtKind[] = [
   'pen',
   'rotary',
   'cartridge',
+  'needle',
   'ink',
   'power',
   'grip',

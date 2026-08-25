@@ -15,6 +15,7 @@ export type ArtKind =
   | 'pen'
   | 'rotary'
   | 'cartridge'
+  | 'needle'
   | 'ink'
   | 'power'
   | 'grip'
@@ -61,500 +62,21 @@ export function stockOf(product: Product): number {
 }
 
 export const CATEGORIES: Category[] = [
-  { slug: 'descartables', name: 'Descartables', tagline: 'Guantes, film y barreras', mascot: 'gloves', art: 'gloves' },
-  { slug: 'agujas', name: 'Agujas', tagline: 'Por blister, todas las configuraciones', mascot: 'pointing', art: 'cartridge' },
-  { slug: 'cartuchos', name: 'Cartuchos', tagline: 'Black Sheep, Filter y EZ Revolution', mascot: 'machine', art: 'cartridge' },
-  { slug: 'punteras', name: 'Punteras', tagline: 'Acero y aluminio para toda máquina', mascot: 'rock', art: 'grip' },
-  { slug: 'pigmentos', name: 'Pigmentos', tagline: 'Dynamic, Elephant Klug, Vincent', mascot: 'ink', art: 'ink' },
-  { slug: 'anestesia', name: 'Anestesia', tagline: 'Tópicos para sesiones largas', mascot: 'cream', art: 'cream' },
-  { slug: 'aftercare', name: 'Aftercare', tagline: 'Stencil, limpieza y cuidado post tattoo', mascot: 'walking', art: 'soap' },
-  { slug: 'varios', name: 'Varios', tagline: 'Pieles, calibres y accesorios de apoyo', mascot: 'hero', art: 'stencil' },
+  { slug: 'pigmentos', name: 'Pigmentos', tagline: 'Tintas Dynamic, Elephant Klug y Vincent', mascot: 'ink', art: 'ink' },
+  {
+    slug: 'bioseguridad',
+    name: 'Productos de Bioseguridad',
+    tagline: 'Barbijos, guantes, jabón, campos y film',
+    mascot: 'gloves',
+    art: 'gloves',
+  },
+  { slug: 'agujas', name: 'Agujas', tagline: 'Agujas y cartuchos, todas las configuraciones', mascot: 'pointing', art: 'cartridge' },
+  { slug: 'varios', name: 'Varios', tagline: 'Stencil, cables y cuidado post tatuaje', mascot: 'hero', art: 'stencil' },
 ]
 
 export const PRODUCTS: Product[] = [
-  /* ---- DESCARTABLES ---- */
-  {
-    slug: 'guantes-nitrilo-negros-x100',
-    name: 'Guantes de Nitrilo Negros x100',
-    brand: 'A Guantes Negros',
-    price: 13990,
-    category: 'descartables',
-    art: 'gloves',
-    rating: 5,
-    reviews: 218,
-    badge: 'LA CASA',
-    featured: true,
-    description:
-      'El producto que le da nombre a la casa. Nitrilo negro de alta resistencia, sin látex y con el calce exacto. Caja x100 unidades disponible en S, M, L y XL.',
-    specs: [
-      ['Material', 'Nitrilo'],
-      ['Color', 'Negro'],
-      ['Cantidad', 'Caja x100'],
-      ['Talles', 'S / M / L / XL'],
-      ['Libre de látex', 'Sí'],
-    ],
-  },
-  {
-    slug: 'film-eco-15m',
-    name: 'Film Eco 15m',
-    brand: 'A Guantes Negros',
-    price: 4490,
-    category: 'descartables',
-    art: 'film',
-    rating: 4,
-    reviews: 87,
-    description:
-      'Rollo de film protector de 15 metros para cubrir máquinas, camillas y superficies de trabajo. Higiene total, sesión tras sesión.',
-    specs: [
-      ['Largo', '15 m'],
-      ['Ancho', '30 cm'],
-    ],
-  },
-  {
-    slug: 'cubre-clip-cord-x100',
-    name: 'Cubre Clip Cord x100',
-    brand: 'A Guantes Negros',
-    price: 5990,
-    category: 'descartables',
-    art: 'film',
-    rating: 5,
-    reviews: 64,
-    description:
-      'Fundas descartables para clip cord y cables RCA. Caja x100 unidades. Mantené tu estación impecable con cero esfuerzo.',
-    specs: [
-      ['Cantidad', 'Caja x100'],
-      ['Material', 'Polietileno'],
-      ['Compatibilidad', 'Clip cord y RCA'],
-    ],
-  },
-  {
-    slug: 'cubre-maquina-x100',
-    name: 'Cubre Máquina x100',
-    brand: 'A Guantes Negros',
-    price: 5490,
-    category: 'descartables',
-    art: 'film',
-    rating: 5,
-    reviews: 43,
-    description:
-      'Fundas descartables para máquinas rotativas y pen. Caja x100. Protección cruzada, cero contaminación.',
-    specs: [
-      ['Cantidad', 'Caja x100'],
-      ['Material', 'Polietileno'],
-    ],
-  },
-  {
-    slug: 'cubre-pen-x100',
-    name: 'Cubre Pen x100',
-    brand: 'A Guantes Negros',
-    price: 4990,
-    category: 'descartables',
-    art: 'film',
-    rating: 5,
-    reviews: 51,
-    description:
-      'Fundas específicas para pen tattoo. Caja x100 unidades. Ajuste firme, descarte rápido.',
-    specs: [
-      ['Cantidad', 'Caja x100'],
-      ['Uso', 'Pen/Rotativa'],
-    ],
-  },
-  {
-    slug: 'campos-esteriles-x50',
-    name: 'Campos Estériles BN x50',
-    brand: 'A Guantes Negros',
-    price: 6990,
-    category: 'descartables',
-    art: 'film',
-    rating: 4,
-    reviews: 29,
-    description:
-      'Campos estériles descartables para organizar y proteger tu espacio de trabajo. Paquete x50 unidades.',
-    specs: [
-      ['Cantidad', 'x50 unidades'],
-      ['Esterilización', 'E.O. Gas'],
-    ],
-  },
-  {
-    slug: 'barbijos-descartables-x50',
-    name: 'Barbijos Descartables x50',
-    brand: 'A Guantes Negros',
-    price: 3990,
-    category: 'descartables',
-    art: 'film',
-    rating: 4,
-    reviews: 38,
-    description:
-      'Barbijos tricapa descartables para uso en estudio. Paquete x50. Comodidad y protección en cada sesión.',
-    specs: [
-      ['Cantidad', 'x50 unidades'],
-      ['Capas', '3 capas'],
-    ],
-  },
-
-  /* ---- AGUJAS ---- */
-  {
-    slug: 'agujas-1207-rl-x50',
-    name: 'Agujas 1207 RL x50',
-    brand: 'A Guantes Negros',
-    price: 3490,
-    category: 'agujas',
-    art: 'cartridge',
-    rating: 5,
-    reviews: 134,
-    badge: 'MÁS VENDIDAS',
-    featured: true,
-    description:
-      'Agujas round liner 7 en blister x50 unidades. Ideales para líneas medianas con precisión constante. Afiladas con laser, esterilizadas con gas EO.',
-    specs: [
-      ['Configuración', '1207 RL'],
-      ['Cantidad', 'Blister x50'],
-      ['Esterilización', 'E.O. Gas'],
-    ],
-  },
-  {
-    slug: 'agujas-1205-rs-x50',
-    name: 'Agujas 1205 RS x50',
-    brand: 'A Guantes Negros',
-    price: 3290,
-    category: 'agujas',
-    art: 'cartridge',
-    rating: 5,
-    reviews: 98,
-    description:
-      'Round shader 5 en blister x50. Para sombras suaves y trabajo en pequeños detalles. Flujo de tinta constante.',
-    specs: [
-      ['Configuración', '1205 RS'],
-      ['Cantidad', 'Blister x50'],
-      ['Esterilización', 'E.O. Gas'],
-    ],
-  },
-  {
-    slug: 'agujas-1209-rl-x50',
-    name: 'Agujas 1209 RL x50',
-    brand: 'A Guantes Negros',
-    price: 3490,
-    category: 'agujas',
-    art: 'cartridge',
-    rating: 5,
-    reviews: 77,
-    description:
-      'Round liner 9 en blister x50. Para líneas más gruesas y relleno de detalles. Punta afilada, calidad consistente.',
-    specs: [
-      ['Configuración', '1209 RL'],
-      ['Cantidad', 'Blister x50'],
-    ],
-  },
-  {
-    slug: 'agujas-1215-rl-x50',
-    name: 'Agujas 1215 RL x50',
-    brand: 'A Guantes Negros',
-    price: 3790,
-    category: 'agujas',
-    art: 'cartridge',
-    rating: 4,
-    reviews: 45,
-    description:
-      'Round liner 15 en blister x50. Ideales para líneas gruesas y estilos neo-tradicional.',
-    specs: [
-      ['Configuración', '1215 RL'],
-      ['Cantidad', 'Blister x50'],
-    ],
-  },
-  {
-    slug: 'agujas-1209-rm-x50',
-    name: 'Agujas 1209 RM x50',
-    brand: 'A Guantes Negros',
-    price: 3490,
-    category: 'agujas',
-    art: 'cartridge',
-    rating: 5,
-    reviews: 89,
-    description:
-      'Round magnum 9 en blister x50. Para sombras suaves y transiciones naturales en cualquier estilo.',
-    specs: [
-      ['Configuración', '1209 RM'],
-      ['Cantidad', 'Blister x50'],
-    ],
-  },
-  {
-    slug: 'agujas-1205-m1-x50',
-    name: 'Agujas 1205 M1 x50',
-    brand: 'A Guantes Negros',
-    price: 3490,
-    category: 'agujas',
-    art: 'cartridge',
-    rating: 4,
-    reviews: 52,
-    description:
-      'Magnum 5 en blister x50. Para color sólido y sombras en áreas pequeñas. Distribución de tinta uniforme.',
-    specs: [
-      ['Configuración', '1205 M1'],
-      ['Cantidad', 'Blister x50'],
-    ],
-  },
-
-  /* ---- CARTUCHOS ---- */
-  {
-    slug: 'cartuchos-black-sheep-1205rl-x20',
-    name: 'Black Sheep 1205 RL x20',
-    brand: 'Black Sheep',
-    price: 9990,
-    category: 'cartuchos',
-    art: 'cartridge',
-    rating: 5,
-    reviews: 176,
-    badge: 'MÁS VENDIDO',
-    featured: true,
-    description:
-      'Cartucho round liner 5 de Black Sheep en caja x20 unidades. Membrana antiretorno de precisión, flujo de tinta estable y aguja afilada con láser. Para líneas finas perfectas.',
-    specs: [
-      ['Configuración', '1205 RL'],
-      ['Cantidad', 'Caja x20'],
-      ['Membrana', 'Antiretorno'],
-      ['Aguja', 'Afilada con láser'],
-    ],
-  },
-  {
-    slug: 'cartuchos-black-sheep-1209rl-x20',
-    name: 'Black Sheep 1209 RL x20',
-    brand: 'Black Sheep',
-    price: 9990,
-    category: 'cartuchos',
-    art: 'cartridge',
-    rating: 5,
-    reviews: 143,
-    description:
-      'Cartucho round liner 9 de Black Sheep, caja x20. Para líneas medianas y gruesas con la consistencia que exige el trabajo profesional.',
-    specs: [
-      ['Configuración', '1209 RL'],
-      ['Cantidad', 'Caja x20'],
-      ['Membrana', 'Antiretorno'],
-    ],
-  },
-  {
-    slug: 'cartuchos-black-sheep-1209rm-x20',
-    name: 'Black Sheep 1209 RM x20',
-    brand: 'Black Sheep',
-    price: 10490,
-    category: 'cartuchos',
-    art: 'cartridge',
-    rating: 5,
-    reviews: 119,
-    description:
-      'Cartucho round magnum 9 de Black Sheep, caja x20. Para sombras suaves, color y degradados. La mejor elección para realismo y acuarela.',
-    specs: [
-      ['Configuración', '1209 RM'],
-      ['Cantidad', 'Caja x20'],
-      ['Membrana', 'Antiretorno'],
-    ],
-  },
-  {
-    slug: 'cartuchos-black-sheep-1215m1-x20',
-    name: 'Black Sheep 1215 M1 x20',
-    brand: 'Black Sheep',
-    price: 10990,
-    category: 'cartuchos',
-    art: 'cartridge',
-    rating: 4,
-    reviews: 67,
-    description:
-      'Cartucho magnum 15 de Black Sheep, caja x20. Para empaquetar color y sombras en áreas grandes. Distribución perfecta.',
-    specs: [
-      ['Configuración', '1215 M1'],
-      ['Cantidad', 'Caja x20'],
-    ],
-  },
-  {
-    slug: 'cartuchos-filter-1205rl-x20',
-    name: 'Filter 1205 RL x20',
-    brand: 'Filter',
-    price: 8990,
-    category: 'cartuchos',
-    art: 'cartridge',
-    rating: 5,
-    reviews: 94,
-    description:
-      'Cartucho round liner 5 Filter, caja x20. Membrana de alta precisión y aguja tratada para líneas ultra finas. Muy popular en lettering y fineline.',
-    specs: [
-      ['Configuración', '1205 RL'],
-      ['Cantidad', 'Caja x20'],
-      ['Membrana', 'Alta precisión'],
-    ],
-  },
-  {
-    slug: 'cartuchos-filter-1207rl-x20',
-    name: 'Filter 1207 RL x20',
-    brand: 'Filter',
-    price: 8990,
-    category: 'cartuchos',
-    art: 'cartridge',
-    rating: 5,
-    reviews: 88,
-    description:
-      'Cartucho round liner 7 Filter, caja x20. Flujo constante, sin saltos ni tapones. Líneas claras y definidas.',
-    specs: [
-      ['Configuración', '1207 RL'],
-      ['Cantidad', 'Caja x20'],
-    ],
-  },
-  {
-    slug: 'cartuchos-filter-1209rm-x20',
-    name: 'Filter 1209 RM x20',
-    brand: 'Filter',
-    price: 9490,
-    category: 'cartuchos',
-    art: 'cartridge',
-    rating: 4,
-    reviews: 56,
-    description:
-      'Cartucho round magnum 9 Filter, caja x20. Sombras suaves y degradados limpios con mínimo trauma en la piel.',
-    specs: [
-      ['Configuración', '1209 RM'],
-      ['Cantidad', 'Caja x20'],
-    ],
-  },
-  {
-    slug: 'cartuchos-ez-1205rl-x20',
-    name: 'EZ Revolution 1205 RL x20',
-    brand: 'EZ Revolution',
-    price: 11990,
-    category: 'cartuchos',
-    art: 'cartridge',
-    rating: 5,
-    reviews: 72,
-    badge: 'PRO',
-    description:
-      'Cartucho EZ Revolution round liner 5, caja x20. Tecnología de punta: aguja soldada a láser, membrana de doble cámara y ajuste perfecto en cualquier pen.',
-    specs: [
-      ['Configuración', '1205 RL'],
-      ['Cantidad', 'Caja x20'],
-      ['Membrana', 'Doble cámara'],
-      ['Aguja', 'Soldada a láser'],
-    ],
-  },
-  {
-    slug: 'cartuchos-ez-1209rl-x20',
-    name: 'EZ Revolution 1209 RL x20',
-    brand: 'EZ Revolution',
-    price: 11990,
-    category: 'cartuchos',
-    art: 'cartridge',
-    rating: 5,
-    reviews: 61,
-    description:
-      'Cartucho EZ Revolution round liner 9, caja x20. Potencia y precisión para cualquier estilo. El preferido de artistas de nivel internacional.',
-    specs: [
-      ['Configuración', '1209 RL'],
-      ['Cantidad', 'Caja x20'],
-    ],
-  },
-
-  /* ---- PUNTERAS ---- */
-  {
-    slug: 'puntera-acero-25mm-ft',
-    name: 'Puntera Acero 25mm FT',
-    brand: 'A Guantes Negros',
-    price: 2490,
-    category: 'punteras',
-    art: 'grip',
-    rating: 5,
-    reviews: 47,
-    featured: true,
-    description:
-      'Puntera de acero inoxidable 25mm flat tip. Compatible con la mayoría de máquinas estándar. Resistente, liviana y esterilizable en autoclave.',
-    specs: [
-      ['Diámetro', '25 mm'],
-      ['Tipo', 'Flat Tip (FT)'],
-      ['Material', 'Acero inoxidable'],
-      ['Esterilización', 'Autoclave'],
-    ],
-  },
-  {
-    slug: 'puntera-acero-25mm-rt',
-    name: 'Puntera Acero 25mm RT',
-    brand: 'A Guantes Negros',
-    price: 2490,
-    category: 'punteras',
-    art: 'grip',
-    rating: 4,
-    reviews: 38,
-    description:
-      'Puntera de acero inoxidable 25mm round tip. Para mayor comodidad en agarre largo. Resistente y esterilizable.',
-    specs: [
-      ['Diámetro', '25 mm'],
-      ['Tipo', 'Round Tip (RT)'],
-      ['Material', 'Acero inoxidable'],
-    ],
-  },
-  {
-    slug: 'puntera-acero-32mm',
-    name: 'Puntera Acero 32mm',
-    brand: 'A Guantes Negros',
-    price: 2790,
-    category: 'punteras',
-    art: 'grip',
-    rating: 5,
-    reviews: 29,
-    description:
-      'Puntera de acero 32mm para máquinas estándar. Mayor diámetro para cómodo agarre en sesiones prolongadas.',
-    specs: [
-      ['Diámetro', '32 mm'],
-      ['Material', 'Acero inoxidable'],
-    ],
-  },
-  {
-    slug: 'puntera-aluminio-16mm',
-    name: 'Puntera Aluminio 16mm',
-    brand: 'A Guantes Negros',
-    price: 1990,
-    category: 'punteras',
-    art: 'grip',
-    rating: 4,
-    reviews: 22,
-    description:
-      'Puntera de aluminio anodizado 16mm. Ultra liviana para sesiones largas. Ideal para técnicas de precisión y líneas finas.',
-    specs: [
-      ['Diámetro', '16 mm'],
-      ['Material', 'Aluminio anodizado'],
-    ],
-  },
-  {
-    slug: 'set-repuestos-punteras',
-    name: 'Set Repuestos Punteras',
-    brand: 'A Guantes Negros',
-    price: 8990,
-    compareAt: 12000,
-    category: 'punteras',
-    art: 'grip',
-    rating: 5,
-    reviews: 34,
-    badge: 'OFERTA',
-    description:
-      'Set de repuestos: incluye 11FT, 13FT, 15FT, 15RT y 18RT en acero inoxidable. Todo lo que necesitás para mantener tu estudio productivo.',
-    specs: [
-      ['Incluye', '11FT · 13FT · 15FT · 15RT · 18RT'],
-      ['Material', 'Acero inoxidable'],
-      ['Cantidad', '5 punteras'],
-    ],
-  },
-  {
-    slug: 'set-limpia-punteras',
-    name: 'Set Limpia Punteras',
-    brand: 'A Guantes Negros',
-    price: 3990,
-    category: 'punteras',
-    art: 'grip',
-    rating: 5,
-    reviews: 18,
-    description:
-      'Kit de limpieza para punteras de acero y aluminio. Incluye cepillo, varilla y esponja de bronce. Mantené tus punteras como nuevas.',
-    specs: [
-      ['Contenido', 'Cepillo + varilla + esponja'],
-    ],
-  },
-
   /* ---- PIGMENTOS ---- */
+
   {
     slug: 'dynamic-black-8oz',
     name: 'Dynamic Black 8 oz',
@@ -657,70 +179,326 @@ export const PRODUCTS: Product[] = [
       ['Origen', 'Biomaser'],
     ],
   },
+  /* ---- PRODUCTOS DE BIOSEGURIDAD ---- */
   {
-    slug: 'biomaser-labios-12ml',
-    name: 'Biomaser Labios 12 ml',
-    brand: 'Biomaser',
-    price: 7990,
-    category: 'pigmentos',
-    art: 'ink',
+    slug: 'guantes-nitrilo-negros-x100',
+    name: 'Guantes de Nitrilo Negros x100',
+    brand: 'A Guantes Negros',
+    price: 13990,
+    category: 'bioseguridad',
+    art: 'gloves',
     rating: 5,
-    reviews: 27,
-    badge: 'PMU',
-    description:
-      'Pigmento Biomaser para labios. Tonos cálidos y fríos para cobertura completa en aquarelle lips y lip blush. Curación suave y tonos naturales.',
-    specs: [
-      ['Contenido', '12 ml'],
-      ['Uso', 'Labios (dermopigmentación)'],
-    ],
-  },
-
-  /* ---- ANESTESIA ---- */
-  {
-    slug: 'tktx-spray',
-    name: 'TKTX Spray Anestésico',
-    brand: 'TKTX',
-    price: 8990,
-    category: 'anestesia',
-    art: 'cream',
-    rating: 5,
-    reviews: 142,
-    badge: 'MÁS PEDIDO',
+    reviews: 218,
+    badge: 'LA CASA',
     featured: true,
     description:
-      'Spray anestésico tópico TKTX para uso durante la sesión de tattoo. Acción rápida, efecto prolongado y fácil aplicación. Ideal para zonas sensibles.',
+      'El producto que le da nombre a la casa. Nitrilo negro de alta resistencia, sin látex y con el calce exacto. Caja x100 unidades disponible en S, M, L y XL.',
     specs: [
-      ['Contenido', '100 ml'],
-      ['Tipo', 'Spray'],
-      ['Aplicación', 'Durante la sesión'],
-      ['Activo', 'Lidocaína + Tetracaína'],
+      ['Material', 'Nitrilo'],
+      ['Color', 'Negro'],
+      ['Cantidad', 'Caja x100'],
+      ['Talles', 'S / M / L / XL'],
+      ['Libre de látex', 'Sí'],
     ],
   },
   {
-    slug: 'blessed-30g',
-    name: 'Blessed 30 g',
-    brand: 'Blessed',
-    price: 12990,
-    category: 'anestesia',
-    art: 'cream',
-    rating: 5,
-    reviews: 97,
+    slug: 'film-eco-15m',
+    name: 'Film Eco 15m',
+    brand: 'A Guantes Negros',
+    price: 4490,
+    category: 'bioseguridad',
+    art: 'film',
+    rating: 4,
+    reviews: 87,
     description:
-      'Crema anestésica Blessed 30g. Para aplicar antes y durante la sesión. Alta concentración, absorción rápida y larga duración. El preferido para zonas de alto dolor.',
+      'Rollo de film protector de 15 metros para cubrir máquinas, camillas y superficies de trabajo. Higiene total, sesión tras sesión.',
     specs: [
-      ['Contenido', '30 g'],
-      ['Tipo', 'Crema'],
-      ['Aplicación', 'Pre y durante sesión'],
+      ['Largo', '15 m'],
+      ['Ancho', '30 cm'],
+    ],
+  },
+  {
+    slug: 'cubre-cable-x100',
+    name: 'Cubre Cable x100',
+    brand: 'A Guantes Negros',
+    price: 5990,
+    category: 'bioseguridad',
+    art: 'film',
+    rating: 5,
+    reviews: 64,
+    description:
+      'Fundas descartables para clip cord y cables RCA. Caja x100 unidades. Mantené tu estación impecable con cero esfuerzo.',
+    specs: [
+      ['Cantidad', 'Caja x100'],
+      ['Material', 'Polietileno'],
+      ['Compatibilidad', 'Clip cord y RCA'],
+    ],
+  },
+  {
+    slug: 'campos-esteriles-x50',
+    name: 'Campos Estériles BN x50',
+    brand: 'A Guantes Negros',
+    price: 6990,
+    category: 'bioseguridad',
+    art: 'film',
+    rating: 4,
+    reviews: 29,
+    description:
+      'Campos estériles descartables para organizar y proteger tu espacio de trabajo. Paquete x50 unidades.',
+    specs: [
+      ['Cantidad', 'x50 unidades'],
+      ['Esterilización', 'E.O. Gas'],
+    ],
+  },
+  {
+    slug: 'barbijos-descartables-x50',
+    name: 'Barbijos Descartables x50',
+    brand: 'A Guantes Negros',
+    price: 3990,
+    category: 'bioseguridad',
+    art: 'film',
+    rating: 4,
+    reviews: 38,
+    description:
+      'Barbijos tricapa descartables para uso en estudio. Paquete x50. Comodidad y protección en cada sesión.',
+    specs: [
+      ['Cantidad', 'x50 unidades'],
+      ['Capas', '3 capas'],
+    ],
+  },
+  {
+    slug: 'jabon-antiseptico',
+    name: 'Jabón Antiséptico',
+    brand: 'A Guantes Negros',
+    price: 3990,
+    category: 'bioseguridad',
+    art: 'soap',
+    rating: 5,
+    reviews: 64,
+    description:
+      'Jabón antiséptico neutro para limpiar la zona durante y después del tatuaje. pH equilibrado, sin perfumes y sin irritación en piel recién tatuada.',
+    specs: [
+      ['Contenido', '500 ml'],
+      ['pH', 'Neutro'],
+      ['Perfume', 'Sin perfume'],
+    ],
+  },
+  /* ---- AGUJAS ---- */
+
+  {
+    slug: 'agujas-1207-rl-x50',
+    name: 'Agujas 1207 RL x50',
+    brand: 'A Guantes Negros',
+    price: 3490,
+    category: 'agujas',
+    art: 'needle',
+    rating: 5,
+    reviews: 134,
+    badge: 'MÁS VENDIDAS',
+    featured: true,
+    description:
+      'Agujas round liner 7 en blister x50 unidades. Ideales para líneas medianas con precisión constante. Afiladas con laser, esterilizadas con gas EO.',
+    specs: [
+      ['Configuración', '1207 RL'],
+      ['Cantidad', 'Blister x50'],
+      ['Esterilización', 'E.O. Gas'],
+    ],
+  },
+  {
+    slug: 'agujas-1205-rs-x50',
+    name: 'Agujas 1205 RS x50',
+    brand: 'A Guantes Negros',
+    price: 3290,
+    category: 'agujas',
+    art: 'needle',
+    rating: 5,
+    reviews: 98,
+    description:
+      'Round shader 5 en blister x50. Para sombras suaves y trabajo en pequeños detalles. Flujo de tinta constante.',
+    specs: [
+      ['Configuración', '1205 RS'],
+      ['Cantidad', 'Blister x50'],
+      ['Esterilización', 'E.O. Gas'],
+    ],
+  },
+  {
+    slug: 'agujas-1209-rl-x50',
+    name: 'Agujas 1209 RL x50',
+    brand: 'A Guantes Negros',
+    price: 3490,
+    category: 'agujas',
+    art: 'needle',
+    rating: 5,
+    reviews: 77,
+    description:
+      'Round liner 9 en blister x50. Para líneas más gruesas y relleno de detalles. Punta afilada, calidad consistente.',
+    specs: [
+      ['Configuración', '1209 RL'],
+      ['Cantidad', 'Blister x50'],
+    ],
+  },
+  {
+    slug: 'agujas-1215-rl-x50',
+    name: 'Agujas 1215 RL x50',
+    brand: 'A Guantes Negros',
+    price: 3790,
+    category: 'agujas',
+    art: 'needle',
+    rating: 4,
+    reviews: 45,
+    description:
+      'Round liner 15 en blister x50. Ideales para líneas gruesas y estilos neo-tradicional.',
+    specs: [
+      ['Configuración', '1215 RL'],
+      ['Cantidad', 'Blister x50'],
+    ],
+  },
+  {
+    slug: 'agujas-1205-m1-x50',
+    name: 'Agujas 1205 M1 x50',
+    brand: 'A Guantes Negros',
+    price: 3490,
+    category: 'agujas',
+    art: 'needle',
+    rating: 4,
+    reviews: 52,
+    description:
+      'Magnum 5 en blister x50. Para color sólido y sombras en áreas pequeñas. Distribución de tinta uniforme.',
+    specs: [
+      ['Configuración', '1205 M1'],
+      ['Cantidad', 'Blister x50'],
     ],
   },
 
-  /* ---- AFTERCARE ---- */
+  {
+    slug: 'cartuchos-black-sheep-1205rl-x20',
+    name: 'Black Sheep 1205 RL x20',
+    brand: 'Black Sheep',
+    price: 9990,
+    category: 'agujas',
+    art: 'cartridge',
+    rating: 5,
+    reviews: 176,
+    badge: 'MÁS VENDIDO',
+    featured: true,
+    description:
+      'Cartucho round liner 5 de Black Sheep en caja x20 unidades. Membrana antiretorno de precisión, flujo de tinta estable y aguja afilada con láser. Para líneas finas perfectas.',
+    specs: [
+      ['Configuración', '1205 RL'],
+      ['Cantidad', 'Caja x20'],
+      ['Membrana', 'Antiretorno'],
+      ['Aguja', 'Afilada con láser'],
+    ],
+  },
+  {
+    slug: 'cartuchos-black-sheep-1209rl-x20',
+    name: 'Black Sheep 1209 RL x20',
+    brand: 'Black Sheep',
+    price: 9990,
+    category: 'agujas',
+    art: 'cartridge',
+    rating: 5,
+    reviews: 143,
+    description:
+      'Cartucho round liner 9 de Black Sheep, caja x20. Para líneas medianas y gruesas con la consistencia que exige el trabajo profesional.',
+    specs: [
+      ['Configuración', '1209 RL'],
+      ['Cantidad', 'Caja x20'],
+      ['Membrana', 'Antiretorno'],
+    ],
+  },
+  {
+    slug: 'cartuchos-black-sheep-1215m1-x20',
+    name: 'Black Sheep 1215 M1 x20',
+    brand: 'Black Sheep',
+    price: 10990,
+    category: 'agujas',
+    art: 'cartridge',
+    rating: 4,
+    reviews: 67,
+    description:
+      'Cartucho magnum 15 de Black Sheep, caja x20. Para empaquetar color y sombras en áreas grandes. Distribución perfecta.',
+    specs: [
+      ['Configuración', '1215 M1'],
+      ['Cantidad', 'Caja x20'],
+    ],
+  },
+  {
+    slug: 'cartuchos-filter-1205rl-x20',
+    name: 'Filter 1205 RL x20',
+    brand: 'Filter',
+    price: 8990,
+    category: 'agujas',
+    art: 'cartridge',
+    rating: 5,
+    reviews: 94,
+    description:
+      'Cartucho round liner 5 Filter, caja x20. Membrana de alta precisión y aguja tratada para líneas ultra finas. Muy popular en lettering y fineline.',
+    specs: [
+      ['Configuración', '1205 RL'],
+      ['Cantidad', 'Caja x20'],
+      ['Membrana', 'Alta precisión'],
+    ],
+  },
+  {
+    slug: 'cartuchos-filter-1207rl-x20',
+    name: 'Filter 1207 RL x20',
+    brand: 'Filter',
+    price: 8990,
+    category: 'agujas',
+    art: 'cartridge',
+    rating: 5,
+    reviews: 88,
+    description:
+      'Cartucho round liner 7 Filter, caja x20. Flujo constante, sin saltos ni tapones. Líneas claras y definidas.',
+    specs: [
+      ['Configuración', '1207 RL'],
+      ['Cantidad', 'Caja x20'],
+    ],
+  },
+  {
+    slug: 'cartuchos-ez-1205rl-x20',
+    name: 'EZ Revolution 1205 RL x20',
+    brand: 'EZ Revolution',
+    price: 11990,
+    category: 'agujas',
+    art: 'cartridge',
+    rating: 5,
+    reviews: 72,
+    badge: 'PRO',
+    description:
+      'Cartucho EZ Revolution round liner 5, caja x20. Tecnología de punta: aguja soldada a láser, membrana de doble cámara y ajuste perfecto en cualquier pen.',
+    specs: [
+      ['Configuración', '1205 RL'],
+      ['Cantidad', 'Caja x20'],
+      ['Membrana', 'Doble cámara'],
+      ['Aguja', 'Soldada a láser'],
+    ],
+  },
+  {
+    slug: 'cartuchos-ez-1209rl-x20',
+    name: 'EZ Revolution 1209 RL x20',
+    brand: 'EZ Revolution',
+    price: 11990,
+    category: 'agujas',
+    art: 'cartridge',
+    rating: 5,
+    reviews: 61,
+    description:
+      'Cartucho EZ Revolution round liner 9, caja x20. Potencia y precisión para cualquier estilo. El preferido de artistas de nivel internacional.',
+    specs: [
+      ['Configuración', '1209 RL'],
+      ['Cantidad', 'Caja x20'],
+    ],
+  },
+  /* ---- VARIOS ---- */
+
   {
     slug: 'butter-tha-thu',
     name: 'Butter Tha Thu',
     brand: 'Butter Tha Thu',
     price: 7490,
-    category: 'aftercare',
+    category: 'varios',
     art: 'cream',
     rating: 5,
     reviews: 118,
@@ -738,7 +516,7 @@ export const PRODUCTS: Product[] = [
     name: 'Crema Post Tattoo',
     brand: 'A Guantes Negros',
     price: 5990,
-    category: 'aftercare',
+    category: 'varios',
     art: 'cream',
     rating: 4,
     reviews: 76,
@@ -751,28 +529,11 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    slug: 'jabon-antiseptico',
-    name: 'Jabón Antiséptico',
-    brand: 'A Guantes Negros',
-    price: 3990,
-    category: 'aftercare',
-    art: 'soap',
-    rating: 5,
-    reviews: 64,
-    description:
-      'Jabón antiséptico neutro para limpiar la zona durante y después del tatuaje. pH equilibrado, sin perfumes y sin irritación en piel recién tatuada.',
-    specs: [
-      ['Contenido', '500 ml'],
-      ['pH', 'Neutro'],
-      ['Perfume', 'Sin perfume'],
-    ],
-  },
-  {
     slug: 'stencil-original-black',
     name: 'Stencil Original Black',
     brand: 'Stencil Original',
     price: 4990,
-    category: 'aftercare',
+    category: 'varios',
     art: 'stencil',
     rating: 5,
     reviews: 89,
@@ -789,7 +550,7 @@ export const PRODUCTS: Product[] = [
     name: 'Inkplay Stencil',
     brand: 'Inkplay',
     price: 5490,
-    category: 'aftercare',
+    category: 'varios',
     art: 'stencil',
     rating: 5,
     reviews: 102,
@@ -806,7 +567,7 @@ export const PRODUCTS: Product[] = [
     name: 'Inkplay Foam',
     brand: 'Inkplay',
     price: 4490,
-    category: 'aftercare',
+    category: 'varios',
     art: 'soap',
     rating: 4,
     reviews: 58,
@@ -822,7 +583,7 @@ export const PRODUCTS: Product[] = [
     name: 'Inkplay Finish Spray',
     brand: 'Inkplay',
     price: 4990,
-    category: 'aftercare',
+    category: 'varios',
     art: 'soap',
     rating: 4,
     reviews: 43,
@@ -838,7 +599,7 @@ export const PRODUCTS: Product[] = [
     name: 'Inkplay Witch Hazel',
     brand: 'Inkplay',
     price: 3990,
-    category: 'aftercare',
+    category: 'varios',
     art: 'soap',
     rating: 5,
     reviews: 37,
@@ -850,7 +611,6 @@ export const PRODUCTS: Product[] = [
     ],
   },
 
-  /* ---- VARIOS ---- */
   {
     slug: 'piel-sintetica-a4',
     name: 'Piel Sintética A4',
@@ -870,77 +630,12 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    slug: 'batidor-pigmentos',
-    name: 'Batidor de Pigmentos',
-    brand: 'A Guantes Negros',
-    price: 5990,
-    category: 'varios',
-    art: 'stencil',
-    rating: 4,
-    reviews: 28,
-    description:
-      'Batidor eléctrico para homogeneizar pigmentos y tintas. Indispensable en dermopigmentación y para mantener la consistencia de tus colores.',
-    specs: [
-      ['Velocidades', '2 velocidades'],
-      ['Uso', 'Tattoo y PMU'],
-    ],
-  },
-  {
-    slug: 'calibre-medidor',
-    name: 'Calibre Medidor',
-    brand: 'A Guantes Negros',
-    price: 3990,
-    category: 'varios',
-    art: 'stencil',
-    rating: 5,
-    reviews: 19,
-    description:
-      'Calibre de precisión para medir el grosor de la punta de aguja, el diámetro de cartuchos y el ajuste en punteras. Básico para cualquier estudio serio.',
-    specs: [
-      ['Precisión', '0.01 mm'],
-      ['Rango', '0 – 150 mm'],
-    ],
-  },
-  {
-    slug: 'hilo-mapping',
-    name: 'Hilo Mapping',
-    brand: 'A Guantes Negros',
-    price: 1990,
-    category: 'varios',
-    art: 'stencil',
-    rating: 4,
-    reviews: 14,
-    description:
-      'Hilo de marcado para micropigmentación y diseño de cejas. Tenso, fino y con pigmento de referencia. Esencial para el mapping perfecto.',
-    specs: [
-      ['Uso', 'Mapping de cejas / PMU'],
-      ['Largo', '10 m'],
-    ],
-  },
-  {
-    slug: 'bateria-pen',
-    name: 'Batería Recargable para Pen',
-    brand: 'A Guantes Negros',
-    price: 8990,
-    category: 'varios',
-    art: 'power',
-    rating: 5,
-    reviews: 41,
-    description:
-      'Batería compatible con las principales pen del mercado. Recargable vía USB-C, hasta 8 horas de autonomía y carga rápida. Para no parar nunca.',
-    specs: [
-      ['Autonomía', 'Hasta 8 hs'],
-      ['Carga', 'USB-C'],
-      ['Compatibilidad', 'Universal'],
-    ],
-  },
-  {
     slug: 'cable-rca-clip-cord',
     name: 'Cable RCA / Clip Cord',
     brand: 'A Guantes Negros',
     price: 4490,
     category: 'varios',
-    art: 'grip',
+    art: 'kit',
     rating: 4,
     reviews: 33,
     description:
@@ -978,7 +673,6 @@ export const BRANDS = [
   'Elephant Klug',
   'Vincent',
   'Biomaser',
-  'TKTX',
 ]
 
 export const FAQS: [string, string][] = [
@@ -1004,7 +698,7 @@ export const FAQS: [string, string][] = [
   ],
   [
     '¿Tienen garantía los productos?',
-    'Los equipos eléctricos (baterías, batidores) tienen garantía de 6 meses. Cualquier problema, lo resolvemos nosotros con el fabricante.',
+    'Los equipos y accesorios tienen garantía de 6 meses. Cualquier problema, lo resolvemos nosotros con el fabricante.',
   ],
 ]
 

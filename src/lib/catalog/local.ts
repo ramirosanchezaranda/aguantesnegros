@@ -1,7 +1,7 @@
 import { CATEGORIES, DEFAULT_STOCK, PRODUCTS, type Category, type Product } from '../../data/catalog'
 import type { CatalogRepo } from './types'
 
-const KEY = 'agn-catalog-v1'
+const KEY = 'agn-catalog-v2'
 
 interface Store {
   products: Product[]
