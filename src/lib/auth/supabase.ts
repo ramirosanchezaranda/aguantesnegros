@@ -1,10 +1,9 @@
-import { authUrl, setAccessToken, supabaseConfig } from '../supabase'
+import { authUrl, clearSession, saveSession, SESSION_KEY, supabaseConfig, type TokenResponse } from '../supabase'
 import type { AdminSession, AuthClient } from './types'
 
-// Auth real contra Supabase (GoTrue). El access token se guarda para
-// firmar las escrituras a PostgREST, de modo que apliquen las políticas RLS.
-
-const SESSION_KEY = 'agn-admin-session'
+// Auth real contra Supabase (GoTrue). El access token se guarda —junto con el
+// refresh token— para firmar las escrituras a PostgREST, de modo que apliquen
+// las políticas RLS. La renovación la maneja `sbHeaders()`.
 
 export function createSupabaseAuth(): AuthClient {
   return {
@@ -23,8 +22,8 @@ export function createSupabaseAuth(): AuthClient {
         body: JSON.stringify({ email: email.trim(), password }),
       })
       if (!res.ok) throw new Error('Credenciales inválidas')
-      const data = (await res.json()) as { access_token: string; user?: { email?: string } }
-      setAccessToken(data.access_token)
+      const data = (await res.json()) as TokenResponse
+      saveSession(data)
       const session: AdminSession = { email: data.user?.email ?? email.trim() }
       try {
         localStorage.setItem(SESSION_KEY, JSON.stringify(session))
@@ -34,12 +33,7 @@ export function createSupabaseAuth(): AuthClient {
       return session
     },
     async signOut() {
-      setAccessToken(null)
-      try {
-        localStorage.removeItem(SESSION_KEY)
-      } catch {
-        /* almacenamiento no disponible */
-      }
+      clearSession()
     },
   }
 }

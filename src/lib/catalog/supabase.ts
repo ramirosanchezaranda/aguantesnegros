@@ -95,13 +95,13 @@ export function createSupabaseRepo(): CatalogRepo {
     }),
 
     async listProducts() {
-      const res = await fetch(restUrl('products?select=*&order=name.asc'), { headers: sbHeaders() })
+      const res = await fetch(restUrl('products?select=*&order=name.asc'), { headers: await sbHeaders() })
       await ensureOk(res, 'Listar productos')
       return ((await res.json()) as ProductRow[]).map(rowToProduct)
     },
 
     async listCategories() {
-      const res = await fetch(restUrl('categories?select=*&order=name.asc'), { headers: sbHeaders() })
+      const res = await fetch(restUrl('categories?select=*&order=name.asc'), { headers: await sbHeaders() })
       await ensureOk(res, 'Listar categorías')
       return ((await res.json()) as CategoryRow[]).map(rowToCategory)
     },
@@ -109,7 +109,7 @@ export function createSupabaseRepo(): CatalogRepo {
     async saveProduct(product) {
       const res = await fetch(restUrl('products?on_conflict=slug'), {
         method: 'POST',
-        headers: sbHeaders({ Prefer: 'resolution=merge-duplicates' }),
+        headers: await sbHeaders({ Prefer: 'resolution=merge-duplicates' }),
         body: JSON.stringify(productToRow(product)),
       })
       await ensureOk(res, 'Guardar producto')
@@ -118,7 +118,7 @@ export function createSupabaseRepo(): CatalogRepo {
     async deleteProduct(slug) {
       const res = await fetch(restUrl(`products?slug=eq.${encodeURIComponent(slug)}`), {
         method: 'DELETE',
-        headers: sbHeaders(),
+        headers: await sbHeaders(),
       })
       await ensureOk(res, 'Eliminar producto')
     },
@@ -126,7 +126,7 @@ export function createSupabaseRepo(): CatalogRepo {
     async saveCategory(category) {
       const res = await fetch(restUrl('categories?on_conflict=slug'), {
         method: 'POST',
-        headers: sbHeaders({ Prefer: 'resolution=merge-duplicates' }),
+        headers: await sbHeaders({ Prefer: 'resolution=merge-duplicates' }),
         body: JSON.stringify(category),
       })
       await ensureOk(res, 'Guardar categoría')
@@ -135,7 +135,7 @@ export function createSupabaseRepo(): CatalogRepo {
     async deleteCategory(slug) {
       const res = await fetch(restUrl(`categories?slug=eq.${encodeURIComponent(slug)}`), {
         method: 'DELETE',
-        headers: sbHeaders(),
+        headers: await sbHeaders(),
       })
       await ensureOk(res, 'Eliminar categoría')
     },

@@ -33,9 +33,18 @@ create table if not exists public.products (
   stock       integer not null default 0
 );
 
+-- Se filtra por categoría en cada página de categoría.
+create index if not exists products_category_idx on public.products (category);
+
 -- ---- Row Level Security --------------------------------------------------
 alter table public.categories enable row level security;
 alter table public.products   enable row level security;
+
+-- Se borran primero para que el script se pueda correr más de una vez.
+drop policy if exists "categories_read_public" on public.categories;
+drop policy if exists "products_read_public"   on public.products;
+drop policy if exists "categories_write_auth"  on public.categories;
+drop policy if exists "products_write_auth"    on public.products;
 
 -- Lectura pública
 create policy "categories_read_public" on public.categories
@@ -53,6 +62,7 @@ create policy "products_write_auth" on public.products
 -- Después de correr esto:
 --   1. Authentication → Users → creá tu usuario admin (email + password).
 --   2. Cargá VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY en tu .env.
---   3. Sembrá los productos con el panel /admin, o importándolos desde
---      src/data/catalog.ts (mismo shape, campos en snake_case).
+--   3. Corré supabase/seed.sql para cargar el catálogo.
+--   4. Authentication → Providers → Email: desactivá "Allow new users to
+--      sign up". Si no, cualquiera puede registrarse y editar el catálogo.
 -- ==========================================================================
