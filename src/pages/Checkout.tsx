@@ -36,6 +36,7 @@ export default function Checkout() {
         slug: product.slug,
         name: product.name,
         price: product.price,
+        cost: product.cost,
         qty,
         category: product.category,
       })),

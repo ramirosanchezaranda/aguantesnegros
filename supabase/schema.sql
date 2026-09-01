@@ -103,6 +103,12 @@ create policy "product_images_write_admin" on storage.objects
   using      (bucket_id = 'product-images' and auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com')
   with check (bucket_id = 'product-images' and auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com');
 
+-- ---- Colores y costo ------------------------------------------------------
+-- `colors`: hasta 5 hex por producto, se muestran en la ficha.
+-- `cost`: precio de compra. Sin él sólo se puede medir facturación, no ganancia.
+alter table public.products add column if not exists colors jsonb not null default '[]'::jsonb;
+alter table public.products add column if not exists cost integer;
+
 -- ---- Pedidos -------------------------------------------------------------
 -- Sin esto no hay historial de ventas: el checkout no guardaba nada.
 create table if not exists public.orders (

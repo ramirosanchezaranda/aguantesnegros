@@ -56,6 +56,24 @@ export default function AdminStats() {
     const revenue = inRange.reduce((s, o) => s + o.total, 0)
     const units = inRange.reduce((s, o) => s + o.items.reduce((n, i) => n + i.qty, 0), 0)
 
+    // Sólo se puede calcular margen sobre las líneas que tenían costo cargado.
+    // Se informa la cobertura para no leer un margen parcial como si fuera total.
+    let soldWithCost = 0
+    let soldTotal = 0
+    let cogs = 0
+    let revenueWithCost = 0
+    for (const o of inRange) {
+      for (const i of o.items) {
+        soldTotal += i.qty
+        if (typeof i.cost === 'number') {
+          soldWithCost += i.qty
+          cogs += i.cost * i.qty
+          revenueWithCost += i.price * i.qty
+        }
+      }
+    }
+    const margin = revenueWithCost - cogs
+
     const byProduct = new Map<string, { name: string; units: number; revenue: number }>()
     const byCategory = new Map<string, number>()
     for (const o of inRange) {
@@ -72,6 +90,9 @@ export default function AdminStats() {
       revenue,
       units,
       ticket: inRange.length ? Math.round(revenue / inRange.length) : 0,
+      margin,
+      marginPct: revenueWithCost > 0 ? Math.round((margin / revenueWithCost) * 100) : 0,
+      costCoverage: soldTotal > 0 ? Math.round((soldWithCost / soldTotal) * 100) : 0,
       topProducts: [...byProduct.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 5),
       byCategory: [...byCategory.entries()].sort((a, b) => b[1] - a[1]),
     }
@@ -84,13 +105,16 @@ export default function AdminStats() {
     const out = products.filter((p) => stockOf(p) <= 0)
     const low = products.filter((p) => stockOf(p) > 0 && stockOf(p) <= LOW_STOCK)
     const noPhoto = products.filter((p) => !p.images?.length)
+    const noCost = products.filter((p) => typeof p.cost !== 'number')
+    // Lo que costó comprar el stock, contra lo que vale a precio de venta.
+    const cost = products.reduce((s, p) => s + (p.cost ?? 0) * stockOf(p), 0)
     const byCategory = categories
       .map((c) => {
         const list = products.filter((p) => p.category === c.slug)
         return { name: c.name, value: list.reduce((s, p) => s + p.price * stockOf(p), 0), count: list.length }
       })
       .sort((a, b) => b.value - a.value)
-    return { value, units, out, low, noPhoto, byCategory }
+    return { value, units, out, low, noPhoto, noCost, cost, byCategory }
   }, [products, categories])
 
   const maxCatValue = Math.max(1, ...inventory.byCategory.map((c) => c.value))
@@ -147,6 +171,19 @@ export default function AdminStats() {
                 <span className="stat-card__label">Unidades vendidas</span>
                 <strong className="stat-card__value">{sales.units}</strong>
               </div>
+              <div className="stat-card">
+                <span className="stat-card__label">Ganancia bruta</span>
+                <strong className="stat-card__value">
+                  {sales.costCoverage > 0 ? formatPrice(sales.margin) : '—'}
+                </strong>
+                <span className="stat-card__foot">
+                  {sales.costCoverage === 0
+                    ? 'Cargá el costo de los productos'
+                    : sales.costCoverage < 100
+                      ? `${sales.marginPct}% · sólo ${sales.costCoverage}% de lo vendido tiene costo`
+                      : `${sales.marginPct}% sobre lo vendido`}
+                </span>
+              </div>
             </div>
 
             <h3 className="stat-subtitle">Más vendidos del período</h3>
@@ -196,6 +233,17 @@ export default function AdminStats() {
         <div className={`stat-card ${inventory.low.length ? 'stat-card--warn' : ''}`}>
           <span className="stat-card__label">Stock bajo (≤ {LOW_STOCK})</span>
           <strong className="stat-card__value">{inventory.low.length}</strong>
+        </div>
+        <div className="stat-card">
+          <span className="stat-card__label">Capital invertido</span>
+          <strong className="stat-card__value">
+            {inventory.cost > 0 ? formatPrice(inventory.cost) : '—'}
+          </strong>
+          <span className="stat-card__foot">
+            {inventory.noCost.length
+              ? `${inventory.noCost.length} productos sin costo cargado`
+              : 'Costo de todo el stock'}
+          </span>
         </div>
       </div>
 

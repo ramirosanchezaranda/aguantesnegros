@@ -11,6 +11,9 @@ export interface OrderLine {
   name: string
   /** Precio unitario al momento de la compra: los precios cambian. */
   price: number
+  /** Costo unitario al momento de la compra. Se congela acá porque el costo
+   *  de reposición cambia y el margen histórico no debe moverse con él. */
+  cost?: number
   qty: number
   category: string
 }

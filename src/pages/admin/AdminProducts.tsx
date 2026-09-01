@@ -11,7 +11,15 @@ import ProductArt from '../../components/ProductArt'
 const LOW_STOCK = 5
 
 type StockFilter = 'todos' | 'agotados' | 'bajos' | 'con-stock'
-type Sort = 'nombre' | 'precio-asc' | 'precio-desc' | 'stock-asc' | 'stock-desc' | 'valor-desc' | 'destacados'
+type Sort =
+  | 'nombre'
+  | 'precio-asc'
+  | 'precio-desc'
+  | 'stock-asc'
+  | 'stock-desc'
+  | 'valor-desc'
+  | 'margen-desc'
+  | 'destacados'
 
 export default function AdminProducts() {
   const { products, categories, reload, loading, error } = useCatalog()
@@ -85,6 +93,12 @@ export default function AdminProducts() {
           return stockOf(b) - stockOf(a)
         case 'valor-desc':
           return b.price * stockOf(b) - a.price * stockOf(a)
+        case 'margen-desc': {
+          // Los productos sin costo van al final: su margen es desconocido,
+          // no cero, y mezclarlos arriba daría una lectura falsa.
+          const m = (x: Product) => (typeof x.cost === 'number' ? x.price - x.cost : -Infinity)
+          return m(b) - m(a)
+        }
         case 'destacados':
           return Number(!!b.featured) - Number(!!a.featured) || a.name.localeCompare(b.name)
         default:
@@ -175,6 +189,7 @@ export default function AdminProducts() {
             <option value="stock-asc">Stock: menor a mayor</option>
             <option value="stock-desc">Stock: mayor a menor</option>
             <option value="valor-desc">Valor en stock</option>
+            <option value="margen-desc">Margen: mayor a menor</option>
             <option value="destacados">Destacados primero</option>
           </select>
         </label>

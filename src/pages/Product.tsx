@@ -84,6 +84,21 @@ export default function Product() {
               {soldOut ? 'Agotado' : stock <= 5 ? `¡Últimas ${stock} unidades!` : 'En stock'}
             </p>
 
+            {product.colors?.length ? (
+              <div className="pdp__colors">
+                <span className="pdp__colors-label">
+                  {product.colors.length === 1 ? 'Color' : `${product.colors.length} colores`}
+                </span>
+                <ul>
+                  {product.colors.map((hex) => (
+                    <li key={hex} style={{ background: hex }} title={hex}>
+                      <span className="sr-only">{hex}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
             <ul className="pdp__perks">
               {product.specs.slice(0, 4).map(([k, v]) => (
                 <li key={k}>
