@@ -144,6 +144,34 @@ export default function AdminStats() {
     return [...map.values()].sort((a, b) => b.spent - a.spent)
   }, [orders])
 
+  // ---- Geografía ---------------------------------------------------------
+  // De dónde compran. Sirve para negociar tarifas de envío y para decidir si
+  // conviene un punto de retiro en alguna zona.
+  const geo = useMemo(() => {
+    if (!orders) return null
+    const since = period === 0 ? 0 : Date.now() - period * 24 * 60 * 60 * 1000
+    const inRange = orders.filter((o) => new Date(o.createdAt).getTime() >= since)
+    const map = new Map<string, { orders: number; revenue: number; cities: Set<string> }>()
+    let sinDato = 0
+    for (const o of inRange) {
+      const prov = o.address?.province?.trim()
+      if (!prov) {
+        sinDato += 1
+        continue
+      }
+      const prev = map.get(prov) ?? { orders: 0, revenue: 0, cities: new Set<string>() }
+      prev.orders += 1
+      prev.revenue += o.total
+      if (o.address?.city?.trim()) prev.cities.add(o.address.city.trim())
+      map.set(prov, prev)
+    }
+    const rows = [...map.entries()]
+      .map(([province, v]) => ({ province, ...v, cities: [...v.cities] }))
+      .sort((a, b) => b.orders - a.orders)
+    const conDato = inRange.length - sinDato
+    return { rows, sinDato, conDato }
+  }, [orders, period])
+
   // ---- Carritos ----------------------------------------------------------
   const cartStats = useMemo(() => {
     if (!carts) return null
@@ -349,6 +377,40 @@ export default function AdminStats() {
               </ul>
             </>
           )}
+        </>
+      )}
+
+      {/* ---- GEOGRAFÍA ---- */}
+      <h2 className="stat-section">De dónde compran</h2>
+      {!geo || geo.rows.length === 0 ? (
+        <p className="admin-alert">
+          Todavía no hay pedidos con provincia registrada en este período. Desde ahora se pide siempre en el checkout,
+          incluso cuando el envío es a sucursal o punto de encuentro.
+        </p>
+      ) : (
+        <>
+          <ul className="stat-bars">
+            {geo.rows.map((r) => (
+              <Bar
+                key={r.province}
+                label={r.province}
+                value={r.orders}
+                max={geo.rows[0]?.orders ?? 1}
+                hint={`${r.orders} ${r.orders === 1 ? 'pedido' : 'pedidos'} · ${formatPrice(r.revenue)}`}
+              />
+            ))}
+          </ul>
+          <p className="admin-page__meta">
+            {geo.rows[0] && (
+              <>
+                <strong>{geo.rows[0].province}</strong> concentra{' '}
+                {Math.round((geo.rows[0].orders / Math.max(1, geo.conDato)) * 100)}% de los pedidos
+                {geo.rows[0].cities.length > 0 && ` (${geo.rows[0].cities.slice(0, 3).join(', ')})`}.{' '}
+              </>
+            )}
+            {geo.sinDato > 0 &&
+              `${geo.sinDato} pedidos anteriores no tienen provincia: se registra desde este cambio.`}
+          </p>
         </>
       )}
 

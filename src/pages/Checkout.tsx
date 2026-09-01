@@ -11,6 +11,7 @@ import {
   getPaymentMethod,
   getShippingMethod,
   PAYMENT_METHODS,
+  PROVINCES,
   SHIPPING_METHODS,
   whatsappLink,
 } from '../data/shop'
@@ -62,7 +63,9 @@ export default function Checkout() {
       customer: { ...customer },
       shippingMethod,
       paymentMethod: payment,
-      address: method?.needsAddress ? { ...address } : undefined,
+      // Siempre: provincia y ciudad valen aunque el envío sea a sucursal o
+      // punto de encuentro, y son lo que permite ver de dónde compran.
+      address: { ...address },
     }).catch(() => {
       /* el pedido se muestra igual; sólo se pierde el registro */
     })
@@ -182,31 +185,32 @@ export default function Checkout() {
                   ))}
                 </div>
 
+                <div className="field-row">
+                  <label className="field">
+                    <span>Provincia*</span>
+                    <select
+                      required
+                      value={address.province}
+                      onChange={(e) => setAddress((a) => ({ ...a, province: e.target.value }))}
+                    >
+                      {PROVINCES.map((p) => (
+                        <option key={p}>{p}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="field">
+                    <span>Ciudad*</span>
+                    <input
+                      required
+                      placeholder="La Plata"
+                      value={address.city}
+                      onChange={(e) => setAddress((a) => ({ ...a, city: e.target.value }))}
+                    />
+                  </label>
+                </div>
+
                 {getShippingMethod(shippingMethod)?.needsAddress && (
                   <>
-                    <div className="field-row">
-                      <label className="field">
-                        <span>Provincia*</span>
-                        <select
-                          required
-                          value={address.province}
-                          onChange={(e) => setAddress((a) => ({ ...a, province: e.target.value }))}
-                        >
-                          {['Buenos Aires', 'CABA', 'Córdoba', 'Santa Fe', 'Mendoza', 'Tucumán', 'Otra'].map((p) => (
-                            <option key={p}>{p}</option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="field">
-                        <span>Ciudad*</span>
-                        <input
-                          required
-                          placeholder="La Plata"
-                          value={address.city}
-                          onChange={(e) => setAddress((a) => ({ ...a, city: e.target.value }))}
-                        />
-                      </label>
-                    </div>
                     <label className="field">
                       <span>Dirección*</span>
                       <input
