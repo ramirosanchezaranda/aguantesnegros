@@ -100,3 +100,27 @@ no existen como archivos en el build. `vercel.json` reescribe cualquier ruta a
 entrar directo a una ruta o refrescar devuelve el 404 de Vercel. Los archivos
 estáticos (`/assets`, `/products`, `/mascot`, `/favicon`) no se ven afectados:
 Vercel busca en el filesystem antes de aplicar los rewrites.
+
+### Fotos de producto
+
+Cada producto puede tener **hasta 3 fotos** propias (JPG, PNG o WebP), que se
+cargan desde `/admin` al editarlo. Si no tiene ninguna, la tienda usa la
+ilustración de la marca según el tipo de artículo — o sea que es opcional
+producto por producto.
+
+La primera foto es la que se ve en la grilla y en el carrito; la ficha muestra
+todas como galería. Sin fotos, la ficha mantiene las tres vistas decorativas de
+la ilustración.
+
+Antes de subirla, el navegador la redimensiona (lado mayor 900 px) y la
+convierte a WebP, que mantiene la transparencia de los PNG. Una foto de celular
+de varios MB termina pesando decenas de KB.
+
+- **Con Supabase**: va al bucket público `product-images`. Se lee sin permisos
+  y sólo la escribe el admin, con las mismas políticas que el catálogo. Cada
+  subida usa un nombre nuevo para que el CDN no siga sirviendo la anterior.
+- **En modo local**: queda como data URL dentro del catálogo en `localStorage`,
+  con más compresión para no llenar la cuota del navegador.
+
+Volver a correr `seed.sql` **no borra las fotos**: el upsert no toca la columna
+`image_url`.

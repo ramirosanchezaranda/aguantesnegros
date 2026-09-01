@@ -7,7 +7,8 @@ import {
   type MascotVariant,
   type Product,
 } from '../../data/catalog'
-import { restUrl, sbHeaders } from '../supabase'
+import { compressImage } from '../images'
+import { publicStorageUrl, restUrl, sbHeaders, storageUrl } from '../supabase'
 import type { CatalogRepo } from './types'
 
 /* Columnas en Postgres (snake_case) <-> tipos de la app (camelCase). */
@@ -27,7 +28,13 @@ interface ProductRow {
   description: string
   specs: [string, string][] | null
   stock: number | null
+  image_urls: string[] | null
+  /** Columna de la primera versión, con una sola foto. Se lee por compatibilidad. */
+  image_url?: string | null
 }
+
+/** Bucket público donde viven las fotos de producto. */
+const IMAGE_BUCKET = 'product-images'
 
 function rowToProduct(r: ProductRow): Product {
   return {
@@ -45,6 +52,7 @@ function rowToProduct(r: ProductRow): Product {
     description: r.description,
     specs: r.specs ?? [],
     stock: r.stock ?? DEFAULT_STOCK,
+    images: r.image_urls?.length ? r.image_urls : r.image_url ? [r.image_url] : undefined,
   }
 }
 
@@ -64,6 +72,7 @@ function productToRow(p: Product): ProductRow {
     description: p.description,
     specs: p.specs,
     stock: p.stock ?? DEFAULT_STOCK,
+    image_urls: p.images ?? [],
   }
 }
 
@@ -138,6 +147,20 @@ export function createSupabaseRepo(): CatalogRepo {
         headers: await sbHeaders(),
       })
       await ensureOk(res, 'Eliminar categoría')
+    },
+
+    async uploadImage(slug, file) {
+      const blob = await compressImage(file)
+      // Nombre nuevo en cada subida: si reusáramos el mismo, el CDN podría
+      // seguir sirviendo la imagen anterior durante un buen rato.
+      const path = `${slug}-${Date.now()}.webp`
+      const res = await fetch(storageUrl(IMAGE_BUCKET, path), {
+        method: 'POST',
+        headers: await sbHeaders({ 'Content-Type': 'image/webp' }),
+        body: blob,
+      })
+      await ensureOk(res, 'Subir la imagen')
+      return publicStorageUrl(IMAGE_BUCKET, path)
     },
   }
 }

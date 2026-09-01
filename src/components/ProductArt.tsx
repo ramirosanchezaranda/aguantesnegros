@@ -1,7 +1,9 @@
 import type { ArtKind } from '../data/catalog'
 
-// Ilustración real del producto. Se elige por el tipo de artículo (`art`) y,
-// si no hay una específica, por la categoría — así productos distintos dentro
+// Imagen del producto. Si tiene fotos cargadas desde el panel se usa una de
+// ellas (`index` elige cuál, para la galería de la ficha);
+// si no, se cae a la ilustración de la marca, elegida por el tipo de artículo
+// (`art`) y, en su defecto, por la categoría — así productos distintos dentro
 // de una misma categoría (agujas y cartuchos) conservan su propia imagen.
 //
 // Se usan rutas literales (no un template `/products/${x}.png`) para que el
@@ -32,10 +34,25 @@ const FALLBACK = '/products/default.png'
 export default function ProductArt({
   product,
   className,
+  index = 0,
 }: {
-  product: { art: ArtKind; category: string }
+  product: { art: ArtKind; category: string; images?: string[] }
   className?: string
+  /** Cuál de las fotos mostrar. Si no existe, cae a la primera. */
+  index?: number
 }) {
-  const src = BY_ART[product.art] ?? BY_CATEGORY[product.category] ?? FALLBACK
-  return <img src={src} className={`product-art ${className ?? ''}`} alt="" aria-hidden="true" draggable={false} />
+  const gallery = product.images ?? []
+  const photo = (gallery[index] ?? gallery[0])?.trim()
+  const src = photo || BY_ART[product.art] || BY_CATEGORY[product.category] || FALLBACK
+  return (
+    <img
+      src={src}
+      // Las fotos ocupan más que las ilustraciones, que llevan aire por diseño.
+      className={`product-art ${photo ? 'product-art--photo' : ''} ${className ?? ''}`}
+      alt=""
+      aria-hidden="true"
+      draggable={false}
+      loading="lazy"
+    />
+  )
 }
