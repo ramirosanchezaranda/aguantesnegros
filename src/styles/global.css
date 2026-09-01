@@ -1208,6 +1208,9 @@ fieldset {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* "N productos" y el selector de orden no entran en una línea en pantallas
+     muy angostas: envuelven en vez de empujar la página. */
+  flex-wrap: wrap;
   gap: var(--s-2);
   padding-block: var(--s-2);
   border-block: 1px solid var(--line);
@@ -1229,6 +1232,7 @@ fieldset {
 
 .toolbar__sort select {
   font: inherit;
+  min-width: 0;
   font-weight: 600;
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
@@ -2091,7 +2095,10 @@ fieldset {
 
 .footer__legal {
   display: flex;
-  gap: var(--s-3);
+  /* En pantallas muy angostas (320 px) los enlaces legales no entran en una
+     línea y empujaban la página a lo ancho. */
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-3);
 }
 
 .footer__legal a:hover {
@@ -3977,4 +3984,50 @@ html[data-theme='dark'] .hero__mascot {
 }
 .drawer__hot .drawer__tag {
   color: rgba(255, 255, 255, 0.6);
+}
+
+/* ==================================================================
+   HEADER — espaciado garantizado en cualquier pantalla
+   ==================================================================
+   El logo va centrado con `1fr auto 1fr`, así que las columnas laterales
+   pueden empujarlo si crecen. En teléfonos angostos (360–375 px, muy
+   comunes en Android) la etiqueta "MENÚ" hacía que el botón se montara
+   sobre la mascota. El nombre de la marca no se toca: se recorta lo
+   accesorio y se achica el conjunto, nunca se oculta.
+   ================================================================== */
+.header__inner {
+  /* Separación mínima entre menú, logo y acciones. */
+  gap: var(--s-3);
+}
+.logo {
+  min-width: 0;
+}
+
+/* Teléfonos: el botón queda sólo con el ícono. La etiqueta es prescindible
+   —el ícono de hamburguesa se entiende— y libera unos 55 px. */
+@media (max-width: 559px) {
+  .header__menu-label {
+    display: none;
+  }
+  .header__inner {
+    gap: var(--s-2);
+  }
+}
+
+/* Teléfonos chicos: además se achica el conjunto del logo, sin ocultar el
+   nombre, que tiene que leerse siempre. */
+@media (max-width: 400px) {
+  .logo {
+    gap: 8px;
+  }
+  .logo__mark {
+    height: 38px;
+  }
+  .logo__text {
+    font-size: 15px;
+    letter-spacing: 0.04em;
+  }
+  .header__actions {
+    gap: 0;
+  }
 }
