@@ -179,15 +179,6 @@ create policy "carts_read_admin" on public.carts
   for select to authenticated
   using (auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com');
 
--- ---- Configuración de la tienda -------------------------------------------
--- Existió una tabla `settings` que guardaba los precios de envío editables.
--- La tienda ya no cotiza envíos —se coordinan por WhatsApp con la dirección
--- que deja el cliente— así que nada la lee. Si la creaste antes, podés
--- borrarla; queda comentado porque borrar datos tiene que ser una decisión
--- tuya, no un efecto secundario de correr este archivo:
---
---   drop table if exists public.settings;
-
 -- ==========================================================================
 -- Después de correr esto:
 --   1. Authentication → Users → creá el usuario admin con el MISMO email que
