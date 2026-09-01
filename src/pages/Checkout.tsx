@@ -5,6 +5,7 @@ import ProductArt from '../components/ProductArt'
 import { useCart } from '../context/CartContext'
 import { useMascotMood } from '../context/MascotMoodContext'
 import { formatPrice, installments } from '../lib/format'
+import { saveOrder } from '../lib/orders'
 import { Button } from '../components/ui'
 
 const STEPS = ['Datos', 'Envío', 'Pago', 'Confirmación']
@@ -23,13 +24,35 @@ export default function Checkout() {
     e.preventDefault()
     if (step < 2) {
       setStep(step + 1)
-    } else {
-      setStep(3)
-      setDone(true)
-      clear()
-      pulse('excited', 4000)
-      window.scrollTo({ top: 0, behavior: 'instant' })
+      return
     }
+    // Se registra el pedido antes de vaciar el carrito, que es de donde salen
+    // las líneas. Si el registro falla no se bloquea la compra: el cliente ya
+    // llegó al final, y perder una estadística es preferible a frenarlo.
+    void saveOrder({
+      id: orderNum.current,
+      createdAt: new Date().toISOString(),
+      items: entries.map(({ product, qty }) => ({
+        slug: product.slug,
+        name: product.name,
+        price: product.price,
+        cost: product.cost,
+        qty,
+        category: product.category,
+      })),
+      subtotal: total,
+      discount,
+      shipping,
+      total: grandTotal,
+      coupon: coupon ?? undefined,
+    }).catch(() => {
+      /* el pedido se muestra igual; sólo se pierde el registro */
+    })
+    setStep(3)
+    setDone(true)
+    clear()
+    pulse('excited', 4000)
+    window.scrollTo({ top: 0, behavior: 'instant' })
   }
 
   if (done) {

@@ -29,6 +29,8 @@ interface ProductRow {
   specs: [string, string][] | null
   stock: number | null
   image_urls: string[] | null
+  colors: string[] | null
+  cost: number | null
   /** Columna de la primera versión, con una sola foto. Se lee por compatibilidad. */
   image_url?: string | null
 }
@@ -53,6 +55,8 @@ function rowToProduct(r: ProductRow): Product {
     specs: r.specs ?? [],
     stock: r.stock ?? DEFAULT_STOCK,
     images: r.image_urls?.length ? r.image_urls : r.image_url ? [r.image_url] : undefined,
+    colors: r.colors?.length ? r.colors : undefined,
+    cost: r.cost ?? undefined,
   }
 }
 
@@ -73,6 +77,8 @@ function productToRow(p: Product): ProductRow {
     specs: p.specs,
     stock: p.stock ?? DEFAULT_STOCK,
     image_urls: p.images ?? [],
+    colors: p.colors ?? [],
+    cost: p.cost ?? null,
   }
 }
 

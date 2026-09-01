@@ -103,6 +103,41 @@ create policy "product_images_write_admin" on storage.objects
   using      (bucket_id = 'product-images' and auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com')
   with check (bucket_id = 'product-images' and auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com');
 
+-- ---- Colores y costo ------------------------------------------------------
+-- `colors`: hasta 5 hex por producto, se muestran en la ficha.
+-- `cost`: precio de compra. Sin él sólo se puede medir facturación, no ganancia.
+alter table public.products add column if not exists colors jsonb not null default '[]'::jsonb;
+alter table public.products add column if not exists cost integer;
+
+-- ---- Pedidos -------------------------------------------------------------
+-- Sin esto no hay historial de ventas: el checkout no guardaba nada.
+create table if not exists public.orders (
+  id         text primary key,
+  created_at timestamptz not null default now(),
+  items      jsonb not null default '[]'::jsonb,
+  subtotal   integer not null default 0,
+  discount   integer not null default 0,
+  shipping   integer not null default 0,
+  total      integer not null default 0,
+  coupon     text
+);
+
+create index if not exists orders_created_at_idx on public.orders (created_at desc);
+
+alter table public.orders enable row level security;
+
+drop policy if exists "orders_insert_public" on public.orders;
+drop policy if exists "orders_read_admin"   on public.orders;
+
+-- Cualquiera puede registrar su compra: el checkout no pide cuenta.
+create policy "orders_insert_public" on public.orders
+  for insert to anon, authenticated with check (true);
+
+-- Pero leerlos es sólo del admin: son datos del negocio, no del público.
+create policy "orders_read_admin" on public.orders
+  for select to authenticated
+  using (auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com');
+
 -- ==========================================================================
 -- Después de correr esto:
 --   1. Authentication → Users → creá el usuario admin con el MISMO email que
