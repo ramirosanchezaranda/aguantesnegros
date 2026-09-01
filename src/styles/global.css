@@ -245,27 +245,8 @@ fieldset {
   text-transform: uppercase;
 }
 
-.header__nav {
-  display: none;
-  gap: var(--s-3);
-}
 
-.header__nav a {
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  opacity: 0.85;
-  padding-block: 4px;
-  border-bottom: 2px solid transparent;
-  transition: opacity 0.2s, border-color 0.2s;
-}
 
-.header__nav a:hover,
-.header__nav a.active {
-  opacity: 1;
-  border-color: var(--red);
-}
 
 .header__actions {
   display: inline-flex;
@@ -690,6 +671,9 @@ fieldset {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  /* En pantallas angostas el título y el "Ver todo" no entran en una línea:
+     sin esto el encabezado empujaba la página a lo ancho. */
+  flex-wrap: wrap;
   gap: var(--s-2);
   margin-bottom: var(--s-6);
 }
@@ -2156,7 +2140,9 @@ fieldset {
   }
 
   .footer__grid {
-    grid-template-columns: 1.3fr 0.8fr 0.8fr 1.1fr;
+    /* minmax(0,…) para que las columnas puedan achicarse: por defecto un ítem
+       de grid no baja de su contenido y el footer desbordaba a lo ancho. */
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.8fr) minmax(0, 0.8fr) minmax(0, 1.1fr);
   }
 
   .cart__row {
@@ -2183,13 +2169,6 @@ fieldset {
 }
 
 @media (min-width: 1000px) {
-  .header__nav {
-    display: inline-flex;
-  }
-
-  .header__menu-label {
-    display: inline;
-  }
 
   .catgrid {
     grid-template-columns: repeat(4, 1fr);
@@ -2205,9 +2184,6 @@ fieldset {
 }
 
 @media (max-width: 999px) {
-  .header__menu-label {
-    display: none;
-  }
 
   .header__icon--desktop {
     display: none;
@@ -3852,10 +3828,6 @@ html[data-theme='dark'] .hero__mascot {
 /* ==================================================================
    COMPRA RÁPIDA — compra guiada
    ================================================================== */
-.header__nav-hot {
-  color: var(--red) !important;
-  font-weight: 700;
-}
 .quick__head {
   display: flex;
   align-items: center;
@@ -3997,4 +3969,12 @@ html[data-theme='dark'] .hero__mascot {
     align-items: center;
     justify-content: space-between;
   }
+}
+
+/* Acceso destacado a la compra guiada, dentro del menú */
+.drawer__hot {
+  color: var(--red);
+}
+.drawer__hot .drawer__tag {
+  color: rgba(255, 255, 255, 0.6);
 }
