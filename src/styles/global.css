@@ -76,7 +76,10 @@ html[data-theme='dark'] {
   --muted: rgba(246, 241, 231, 0.6);
   --muted-strong: rgba(246, 241, 231, 0.78);
   --tint: rgba(246, 241, 231, 0.08);
-  --link: var(--red);
+  /* Un paso más claro que el rojo de marca: sobre --surface (que en oscuro es
+     más claro que el fondo) el #e53935 se queda en 4.15:1. Este da 5.03:1
+     ahí y 5.57:1 sobre el fondo. */
+  --link: #ef5350;
   --warn-bg: rgba(224, 165, 60, 0.16);
   --danger-bg: rgba(229, 57, 53, 0.16);
   --line: rgba(246, 241, 231, 0.16);
@@ -1899,7 +1902,8 @@ fieldset {
 }
 
 .field input,
-.field select {
+.field select,
+.field textarea {
   font: inherit;
   font-size: 16px;
   padding: 16px 20px;
@@ -1910,7 +1914,8 @@ fieldset {
 }
 
 .field input:focus,
-.field select:focus {
+.field select:focus,
+.field textarea:focus {
   outline: none;
   border-color: var(--text);
   background: var(--surface);
@@ -4310,4 +4315,154 @@ html[data-theme='dark'] .hero__mascot {
   color: var(--link);
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+/* ==================================================================
+   DEFENSA AL CONSUMIDOR — botón de arrepentimiento y organismos
+   ================================================================== */
+
+/* La Res. 424/2020 pide que el botón se vea. La sección se marca como un
+   bloque aparte del texto legal para que no se lea como un párrafo más. */
+.revoke {
+  margin-bottom: var(--s-6);
+  padding: var(--s-4);
+  background: var(--surface);
+  border: 2px solid var(--text);
+  border-radius: var(--r-lg);
+  scroll-margin-top: 100px;
+}
+.revoke__title {
+  margin: 0 0 var(--s-2);
+  font-size: 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.revoke__lead {
+  margin-bottom: var(--s-3);
+}
+.revoke__form {
+  display: grid;
+  gap: 0 var(--s-3);
+  /* minmax(0,…): sin esto los campos no bajan del ancho de su contenido y
+     desbordan en pantallas angostas. */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+}
+.revoke__form textarea {
+  resize: vertical;
+  min-height: 72px;
+}
+.revoke__hint {
+  margin: var(--s-1) 0 var(--s-2);
+  font-size: 13px;
+  color: var(--muted-strong);
+}
+.revoke__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.revoke__foot {
+  margin: var(--s-3) 0 0;
+  font-size: 13px;
+  color: var(--muted-strong);
+}
+.revoke__foot a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.agencies {
+  display: grid;
+  gap: var(--s-2);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  margin-bottom: var(--s-3);
+}
+.agency {
+  min-width: 0;
+  padding: var(--s-3);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+.agency__scope {
+  margin: 0 0 2px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--link);
+}
+.agency__name {
+  margin: 0 0 var(--s-2);
+  font-size: 15px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text);
+}
+.agency__phones {
+  list-style: none;
+  margin: 0 0 var(--s-2);
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.agency__phones a {
+  display: inline-block;
+  color: var(--link);
+  padding: 6px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--line);
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.agency__site {
+  display: block;
+  font-size: 13px;
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  overflow-wrap: anywhere;
+}
+.agency__note {
+  margin: var(--s-2) 0 0;
+  font-size: 12px;
+  color: var(--muted-strong);
+}
+
+/* El acceso desde la home. Va sobre el fondo oscuro del footer. */
+.footer__revoke {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2) var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+.footer__revoke-btn {
+  padding: 12px 22px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 99px;
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition: background-color 0.2s, color 0.2s;
+}
+.footer__revoke-btn:hover,
+.footer__revoke-btn:focus-visible {
+  background: #fff;
+  color: #0b0b0b;
+}
+.footer__revoke-text {
+  font-size: 13px;
+  opacity: 0.75;
+  max-width: 40ch;
 }

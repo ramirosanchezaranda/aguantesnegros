@@ -126,3 +126,56 @@ export const LEGAL_ADDRESS = ''
 
 /** Última actualización de la política de privacidad (ISO, sin hora). */
 export const PRIVACY_UPDATED = '2026-09-01'
+
+// ---- Defensa al consumidor ------------------------------------------------
+// Organismos donde reclamar si algo no se resuelve con nosotros. Los datos
+// están verificados contra los sitios oficiales; si alguno cambia, se corrige
+// acá y se actualiza en las tres pantallas que los muestran.
+
+export interface ConsumerAgency {
+  /** Jurisdicción, tal como la reconoce la gente. */
+  scope: string
+  name: string
+  /** Teléfonos, en el formato en que los publica el organismo. */
+  phones: string[]
+  site: string
+  siteLabel: string
+  email?: string
+  note?: string
+}
+
+export const CONSUMER_AGENCIES: ConsumerAgency[] = [
+  {
+    scope: 'Nación',
+    name: 'Defensa del Consumidor — Secretaría de Comercio',
+    phones: ['0800-666-1518'],
+    site: 'https://www.argentina.gob.ar/servicio/iniciar-un-reclamo-ante-defensa-del-consumidor',
+    siteLabel: 'Iniciar un reclamo online',
+    note: 'Atiende de todo el país y deriva el reclamo al organismo que corresponda.',
+  },
+  {
+    scope: 'Provincia de Buenos Aires',
+    name: 'Defensa de las y los Consumidores',
+    phones: ['0800-222-9042', '148'],
+    site: 'https://www.gba.gob.ar/defensaconsumidores',
+    siteLabel: 'gba.gob.ar/defensaconsumidores',
+    email: 'infoconsumidor@mp.gba.gov.ar',
+    note: 'También podés ir a la OMIC de tu municipio, que es la oficina más cercana.',
+  },
+  {
+    scope: 'Ciudad de Buenos Aires',
+    name: 'Dirección General de Defensa y Protección al Consumidor',
+    phones: ['147', '0800-999-2727'],
+    site: 'https://buenosaires.gob.ar/tramites/denuncia-online-defensa-al-consumidor',
+    siteLabel: 'Hacer la denuncia online',
+    note: 'Por el 147 marcá la opción 6.',
+  },
+]
+
+/** Número apto para un `tel:`: sin guiones ni espacios. */
+export function telLink(phone: string): string {
+  return `tel:${phone.replace(/\D/g, '')}`
+}
+
+/** Días corridos para arrepentirse de una compra (art. 34, Ley 24.240). */
+export const REVOCATION_DAYS = 10
