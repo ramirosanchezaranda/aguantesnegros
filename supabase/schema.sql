@@ -180,26 +180,13 @@ create policy "carts_read_admin" on public.carts
   using (auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com');
 
 -- ---- Configuración de la tienda -------------------------------------------
--- Clave/valor para que sumar ajustes no requiera migrar. Hoy guarda los
--- precios de envío, que antes estaban en el código y obligaban a redeployar.
-create table if not exists public.settings (
-  key   text primary key,
-  value jsonb not null default '{}'::jsonb
-);
-
-alter table public.settings enable row level security;
-
-drop policy if exists "settings_read_public" on public.settings;
-drop policy if exists "settings_write_admin" on public.settings;
-
--- La tienda necesita leer los precios de envío sin estar logueada.
-create policy "settings_read_public" on public.settings
-  for select using (true);
-
-create policy "settings_write_admin" on public.settings
-  for all to authenticated
-  using      (auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com')
-  with check (auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com');
+-- Existió una tabla `settings` que guardaba los precios de envío editables.
+-- La tienda ya no cotiza envíos —se coordinan por WhatsApp con la dirección
+-- que deja el cliente— así que nada la lee. Si la creaste antes, podés
+-- borrarla; queda comentado porque borrar datos tiene que ser una decisión
+-- tuya, no un efecto secundario de correr este archivo:
+--
+--   drop table if exists public.settings;
 
 -- ==========================================================================
 -- Después de correr esto:

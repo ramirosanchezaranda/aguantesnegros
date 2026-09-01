@@ -2,8 +2,6 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { stockOf, type Product } from '../data/catalog'
 import { useCatalog } from './CatalogContext'
 import { trackCart } from '../lib/carts'
-import { SHIPPING_METHODS } from '../data/shop'
-import { useSettings } from './SettingsContext'
 import { useMascotMood } from './MascotMoodContext'
 
 
@@ -31,8 +29,6 @@ interface CartValue {
   remove: (slug: string) => void
   clear: () => void
   entries: { product: Product; qty: number }[]
-  shippingMethod: string
-  setShippingMethod: (id: string) => void
 }
 
 const Ctx = createContext<CartValue | null>(null)
@@ -47,10 +43,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   })
   const [coupon, setCoupon] = useState<string | null>(null)
-  const [shippingMethod, setShippingMethod] = useState<string>(SHIPPING_METHODS[0].id)
   const { pulse } = useMascotMood()
   const { getProduct } = useCatalog()
-  const { shippingMethods, freeShippingThreshold } = useSettings()
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
@@ -83,11 +77,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const rate = coupon ? (COUPONS[coupon] ?? 0) : 0
     const discount = Math.round(total * rate)
     const afterDiscount = total - discount
-    // El envío depende del método elegido, con los precios que fijó la tienda
-    // desde el panel. Se bonifica por monto, salvo el punto de encuentro, que
-    // ya es gratis.
-    const method = shippingMethods.find((m) => m.id === shippingMethod) ?? shippingMethods[0] ?? SHIPPING_METHODS[0]
-    const shipping = afterDiscount >= freeShippingThreshold ? 0 : method.price
+    // El envío se cotiza por WhatsApp al cerrar el pedido, así que no entra en
+    // el total: cobrar un número inventado sería peor que no mostrarlo.
+    const shipping = 0
     const grandTotal = afterDiscount + shipping
     return {
       items,
@@ -98,8 +90,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       shipping,
       grandTotal,
       coupon,
-      shippingMethod,
-      setShippingMethod,
       applyCoupon: (code: string) => {
         const key = code.trim().toUpperCase()
         if (COUPONS[key]) {
@@ -136,7 +126,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setCoupon(null)
       },
     }
-  }, [items, coupon, shippingMethod, shippingMethods, freeShippingThreshold, pulse, getProduct])
+  }, [items, coupon, pulse, getProduct])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

@@ -12,60 +12,9 @@ export function whatsappLink(message?: string): string {
 }
 
 // ---- Envíos ---------------------------------------------------------------
-// Precios FIJOS por método. Las tarifas reales de OCA y Correo Argentino
-// dependen del código postal y del peso: para cobrarlas exactas hay que
-// integrar una API de logística. Estos valores son los que cobra la tienda.
-
-export interface ShippingMethod {
-  id: string
-  label: string
-  detail: string
-  price: number
-  /** Si es false, no se piden calle ni código postal. */
-  needsAddress: boolean
-}
-
-export const SHIPPING_METHODS: ShippingMethod[] = [
-  {
-    id: 'punto-encuentro',
-    label: 'Coordinar punto de encuentro',
-    detail: 'Arreglamos por WhatsApp dónde y cuándo. Sin costo.',
-    price: 0,
-    needsAddress: false,
-  },
-  {
-    id: 'oca-sucursal',
-    label: 'Entrega en Sucursal OCA',
-    detail: 'Retirás en la sucursal más cercana.',
-    price: 5012,
-    needsAddress: false,
-  },
-  {
-    id: 'correo-sucursal',
-    label: 'Correo Argentino en Sucursal',
-    detail: 'Retirás en la sucursal más cercana.',
-    price: 5487,
-    needsAddress: false,
-  },
-  {
-    id: 'oca-domicilio',
-    label: 'OCA a domicilio',
-    detail: 'Te lo llevan a tu dirección.',
-    price: 6683,
-    needsAddress: true,
-  },
-  {
-    id: 'correo-domicilio',
-    label: 'Correo Argentino a domicilio',
-    detail: 'Te lo llevan a tu dirección.',
-    price: 8829,
-    needsAddress: true,
-  },
-]
-
-export function getShippingMethod(id: string): ShippingMethod | undefined {
-  return SHIPPING_METHODS.find((m) => m.id === id)
-}
+// La tienda no cotiza envíos: se coordinan por WhatsApp una vez hecho el
+// pedido. Igual se pide la dirección completa, que es lo que permite cotizar
+// y despachar sin tener que volver a preguntarla.
 
 /** Las 24 jurisdicciones. Se pide siempre: hace falta para cotizar el envío
  *  —incluso a sucursal— y es lo que permite ver de dónde compran. */
@@ -130,4 +79,34 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
 
 export function getPaymentMethod(id: string): PaymentMethod | undefined {
   return PAYMENT_METHODS.find((m) => m.id === id)
+}
+
+/** Link de WhatsApp hacia un cliente, a partir del número que él mismo cargó.
+ *
+ *  Devuelve `null` cuando no se puede normalizar con certeza: un wa.me armado
+ *  a la fuerza abre un chat con un número equivocado, y eso es peor que
+ *  mostrar el número como texto para copiarlo a mano.
+ *
+ *  Reglas: se saca el prefijo internacional, el 0 de larga distancia y el 15
+ *  —que es la vieja marca de celular y wa.me no acepta—, y se exige que quede
+ *  el formato argentino de 10 dígitos (código de área + abonado). */
+export function customerWhatsappLink(raw: string, message?: string): string | null {
+  let n = raw.replace(/\D/g, '')
+  if (n.startsWith('00')) n = n.slice(2)
+  if (n.startsWith('54')) n = n.slice(2)
+  if (n.startsWith('9')) n = n.slice(1)
+  if (n.startsWith('0')) n = n.slice(1)
+  // El 15 va después del código de área, que mide 2, 3 o 4 dígitos. No se
+  // puede deducir cuál es, así que se prueban las tres posiciones válidas.
+  if (n.length === 12) {
+    for (const cut of [2, 3, 4]) {
+      if (n.slice(cut, cut + 2) === '15') {
+        n = n.slice(0, cut) + n.slice(cut + 2)
+        break
+      }
+    }
+  }
+  if (n.length !== 10) return null
+  const base = `https://wa.me/549${n}`
+  return message ? `${base}?text=${encodeURIComponent(message)}` : base
 }

@@ -691,7 +691,7 @@ export const BRANDS = [
 export const FAQS: [string, string][] = [
   [
     '¿Hacen envíos a todo el país?',
-    'Sí, llegamos a todo el país con OCA y Correo Argentino, a sucursal o a domicilio. Si estás cerca, también podemos coordinar un punto de encuentro sin costo. Te mandamos el seguimiento por WhatsApp.',
+    'Sí, llegamos a todo el país con OCA y Correo Argentino, a sucursal o a domicilio. Si estás cerca, también podemos coordinar un punto de encuentro sin costo. El costo del envío no se cobra en la web: cuando terminás el pedido dejás tu dirección y te pasamos por WhatsApp las opciones que llegan a tu zona con el precio real, para que elijas la que te convenga. Después te mandamos el seguimiento por ahí mismo.',
   ],
   [
     '¿Cuáles son los métodos de pago?',

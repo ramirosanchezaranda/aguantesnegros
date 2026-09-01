@@ -8,7 +8,7 @@ import { formatPrice } from '../lib/format'
 import { Button } from '../components/ui'
 
 export default function Cart() {
-  const { entries, total, discount, shipping, grandTotal, coupon, applyCoupon, removeCoupon, setQty, remove } = useCart()
+  const { entries, total, discount, grandTotal, coupon, applyCoupon, removeCoupon, setQty, remove } = useCart()
   const { setBaseMood } = useMascotMood()
   const [code, setCode] = useState('')
   const [error, setError] = useState(false)
@@ -144,7 +144,7 @@ export default function Cart() {
               )}
               <div>
                 <dt>Envío</dt>
-                <dd>{shipping === 0 ? 'Gratis' : formatPrice(shipping)}</dd>
+                <dd className="summary__pending">A coordinar por WhatsApp</dd>
               </div>
               <div className="summary__total">
                 <dt>Total</dt>

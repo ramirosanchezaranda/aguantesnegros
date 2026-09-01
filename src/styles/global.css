@@ -4131,3 +4131,65 @@ html[data-theme='dark'] .hero__mascot {
     width: 100%;
   }
 }
+
+/* ==================================================================
+   ADMIN — pedidos y notas de envío
+   ================================================================== */
+
+/* Los pedidos se ven como cards en todos los tamaños: cada uno lleva
+   dirección, items y un botón de WhatsApp, y eso en una fila de tabla
+   quedaría ilegible incluso en escritorio. */
+.admin-cards.admin-cards--always {
+  display: grid;
+  gap: var(--s-2);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  align-items: start;
+}
+
+/* Los renglones de un pedido: importe a la derecha, no pastillas sueltas. */
+.stat-list--plain {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 0;
+  width: 100%;
+}
+.stat-list--plain li {
+  justify-content: space-between;
+  gap: var(--s-2);
+  padding: 7px 0;
+  border: 0;
+  border-bottom: 1px solid var(--card-line, var(--line));
+  border-radius: 0;
+}
+.stat-list--plain li:last-child {
+  border-bottom: 0;
+}
+.stat-list--plain em {
+  font-style: normal;
+  color: var(--card-muted, var(--muted-strong));
+}
+
+/* Aviso principal del paso de envío: es la explicación de por qué el total
+   no incluye el envío, así que tiene que leerse antes que los campos. */
+.checkout__note--lead {
+  border-left: 3px solid var(--red);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.checkout__note + .checkout__note {
+  margin-top: 10px;
+}
+
+/* El envío se cotiza después: mostrarlo como "Gratis" sería mentir. */
+.summary__pending {
+  font-weight: 600;
+  font-size: 13px;
+  text-align: right;
+  color: var(--muted-strong);
+}
+
+.checkout-done__summary {
+  max-width: 42ch;
+  margin: 0 auto var(--s-2);
+  font-size: 14px;
+}
