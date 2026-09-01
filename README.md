@@ -65,11 +65,12 @@ La app funciona con dos backends y elige solo según las variables de entorno:
 1. En el SQL Editor de Supabase, corré `supabase/schema.sql` (tablas + RLS) y
    después `supabase/seed.sql` (catálogo). El seed es idempotente: podés
    volver a correrlo para resincronizar.
-2. **Authentication → Users → Add user**: creá el admin con email y contraseña,
-   marcando *Auto Confirm*. Sin confirmar, el login falla.
+2. **Authentication → Users → Add user**: creá el admin con el **mismo email
+   que figura en las políticas de `schema.sql`**, marcando *Auto Confirm*. Sin
+   confirmar, el login falla.
 3. **Authentication → Providers → Email**: desactivá *Allow new users to sign
-   up*. Las políticas dan permiso de escritura a cualquier usuario autenticado,
-   así que con el registro abierto cualquiera podría editar el catálogo.
+   up*. Es defensa en profundidad: las políticas ya validan el email del admin,
+   pero esto evita que se acumulen cuentas basura.
 4. Copiá las credenciales a `.env` (local) y a las variables de entorno de tu
    hosting:
 
@@ -82,7 +83,9 @@ La app funciona con dos backends y elige solo según las variables de entorno:
    **volver a deployar**.
 
 La anon key es pública por diseño (viaja en el bundle). Lo que protege los
-datos es RLS: lectura para todos, escritura sólo con sesión iniciada.
+datos es RLS: lectura para todos, y escritura sólo para el email del admin
+—no alcanza con estar autenticado—. Para cambiar de admin, editá el email en
+las dos políticas de `supabase/schema.sql` y volvé a correr el script.
 
 ### Regenerar el seed
 
