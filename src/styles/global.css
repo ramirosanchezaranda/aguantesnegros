@@ -3436,3 +3436,186 @@ html[data-theme='dark'] .hero__mascot {
   font-weight: 400;
   color: var(--muted-strong);
 }
+
+/* Barra de filtros del panel */
+.admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--s-2);
+  margin-bottom: var(--s-3);
+}
+.admin-filters__search {
+  flex: 1 1 220px;
+  min-width: 0;
+  font: inherit;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+}
+.admin-filters__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-strong);
+}
+.admin-filters__field select {
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+}
+.admin-filters__count {
+  margin: 0 0 0 auto;
+  font-size: 13px;
+  color: var(--muted-strong);
+}
+
+@media (max-width: 600px) {
+  .admin-filters {
+    gap: 10px;
+  }
+  .admin-filters__search {
+    flex-basis: 100%;
+  }
+  .admin-filters__field {
+    flex: 1 1 140px;
+  }
+  .admin-filters__field select {
+    width: 100%;
+  }
+  .admin-filters__count {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+}
+
+/* ==================================================================
+   ADMIN — estadísticas
+   ================================================================== */
+.stat-section {
+  margin: var(--s-4) 0 var(--s-2);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-strong);
+}
+.stat-subtitle {
+  margin: var(--s-3) 0 var(--s-2);
+  font-size: 15px;
+  font-weight: 700;
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--s-2);
+}
+.stat-card {
+  background: var(--surface);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-card);
+  padding: var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stat-card__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-strong);
+}
+.stat-card__value {
+  font-size: 24px;
+  line-height: 1.1;
+}
+.stat-card--alert .stat-card__value {
+  color: var(--red);
+}
+.stat-card--warn .stat-card__value {
+  color: #b26a00;
+}
+
+.stat-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.stat-bar {
+  display: grid;
+  grid-template-columns: minmax(90px, 1.1fr) 2fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.stat-bar__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stat-bar__track {
+  height: 9px;
+  border-radius: 99px;
+  background: var(--tint);
+  overflow: hidden;
+}
+.stat-bar__fill {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--red);
+}
+.stat-bar__value {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-strong);
+  white-space: nowrap;
+}
+
+.stat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.stat-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--line);
+  font-size: 13px;
+}
+.stat-tag {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.stat-tag--out {
+  color: var(--red);
+}
+.stat-tag--low {
+  color: #b26a00;
+}
+
+@media (max-width: 600px) {
+  .stat-bar {
+    grid-template-columns: 1fr auto;
+  }
+  .stat-bar__track {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+}
