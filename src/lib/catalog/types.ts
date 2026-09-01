@@ -9,4 +9,9 @@ export interface CatalogRepo {
   deleteProduct(slug: string): Promise<void>
   saveCategory(category: Category): Promise<void>
   deleteCategory(slug: string): Promise<void>
+  /**
+   * Sube la imagen de un producto y devuelve la URL con la que mostrarla.
+   * Contra Supabase va a Storage; en modo local queda como data URL.
+   */
+  uploadImage(slug: string, file: File): Promise<string>
 }

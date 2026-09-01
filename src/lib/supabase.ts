@@ -126,3 +126,13 @@ export function restUrl(path: string): string {
 export function authUrl(path: string): string {
   return `${supabaseConfig.url}/auth/v1/${path}`
 }
+
+/** Endpoint de subida a Storage (requiere sesión con permiso de escritura). */
+export function storageUrl(bucket: string, path: string): string {
+  return `${supabaseConfig.url}/storage/v1/object/${bucket}/${path}`
+}
+
+/** URL pública de lectura de un archivo del bucket. */
+export function publicStorageUrl(bucket: string, path: string): string {
+  return `${supabaseConfig.url}/storage/v1/object/public/${bucket}/${path}`
+}

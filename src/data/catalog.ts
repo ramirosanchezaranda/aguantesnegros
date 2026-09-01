@@ -51,6 +51,8 @@ export interface Product {
   specs: [string, string][]
   /** Unidades disponibles. Si falta (catálogo semilla), se asume DEFAULT_STOCK. */
   stock?: number
+  /** Foto real del producto. Si falta, se usa la ilustración de la marca. */
+  imageUrl?: string
 }
 
 /** Stock por defecto para productos del catálogo semilla que no lo declaran. */

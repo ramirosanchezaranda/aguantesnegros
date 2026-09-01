@@ -1,4 +1,5 @@
 import { CATEGORIES, DEFAULT_STOCK, PRODUCTS, type Category, type Product } from '../../data/catalog'
+import { blobToDataUrl, compressImage } from '../images'
 import type { CatalogRepo } from './types'
 
 const KEY = 'agn-catalog-v2'
@@ -26,7 +27,11 @@ function read(): Store {
     /* datos corruptos: re-sembramos */
   }
   const fresh = seed()
-  write(fresh)
+  try {
+    write(fresh)
+  } catch {
+    /* sin almacenamiento: seguimos sólo en memoria */
+  }
   return fresh
 }
 
@@ -34,7 +39,12 @@ function write(store: Store): void {
   try {
     localStorage.setItem(KEY, JSON.stringify(store))
   } catch {
-    /* almacenamiento no disponible */
+    // Se propaga: si no avisamos, el panel diría "guardado" y no persistiría
+    // nada. Pasa sobre todo al pegar imágenes, que llenan la cuota.
+    throw new Error(
+      'No se pudo guardar: el almacenamiento del navegador está lleno. ' +
+        'Probá con una imagen más liviana, o conectá Supabase para no depender del navegador.',
+    )
   }
 }
 
@@ -75,6 +85,13 @@ export function createLocalRepo(): CatalogRepo {
       const store = read()
       store.categories = store.categories.filter((c) => c.slug !== slug)
       write(store)
+    },
+    async uploadImage(_slug, file) {
+      // Sin backend la imagen vive dentro del propio catálogo en localStorage,
+      // así que se comprime más fuerte que contra Supabase para no comerse la
+      // cuota (unos 5 MB para todo el navegador).
+      const blob = await compressImage(file, { maxSide: 520, quality: 0.72 })
+      return blobToDataUrl(blob)
     },
   }
 }

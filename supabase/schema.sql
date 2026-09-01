@@ -69,6 +69,26 @@ create policy "products_write_admin" on public.products
   using      (auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com')
   with check (auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com');
 
+-- ---- Fotos de producto ---------------------------------------------------
+-- Opcional por producto: si está vacío, la tienda usa la ilustración de la
+-- marca. Las imágenes viven en Storage; acá sólo guardamos su URL.
+alter table public.products add column if not exists image_url text;
+
+insert into storage.buckets (id, name, public)
+values ('product-images', 'product-images', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists "product_images_read_public" on storage.objects;
+drop policy if exists "product_images_write_admin" on storage.objects;
+
+-- Mismo criterio que el catálogo: las ve cualquiera, las cambia sólo el admin.
+create policy "product_images_read_public" on storage.objects
+  for select using (bucket_id = 'product-images');
+create policy "product_images_write_admin" on storage.objects
+  for all to authenticated
+  using      (bucket_id = 'product-images' and auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com')
+  with check (bucket_id = 'product-images' and auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com');
+
 -- ==========================================================================
 -- Después de correr esto:
 --   1. Authentication → Users → creá el usuario admin con el MISMO email que

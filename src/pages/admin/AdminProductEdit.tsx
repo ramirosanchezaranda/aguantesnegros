@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useCatalog } from '../../context/CatalogContext'
 import { getRepo } from '../../lib/catalog'
+import { ACCEPTED_IMAGE_TYPES } from '../../lib/images'
+import ProductArt from '../../components/ProductArt'
 import { DEFAULT_STOCK, type ArtKind, type Product } from '../../data/catalog'
 
 const ART_KINDS: ArtKind[] = [
@@ -63,6 +65,7 @@ export default function AdminProductEdit() {
   const [slugTouched, setSlugTouched] = useState(!isNew)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
 
   function set<K extends keyof Product>(key: K, value: Product[K]) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -70,6 +73,20 @@ export default function AdminProductEdit() {
 
   function onNameChange(name: string) {
     setForm((f) => ({ ...f, name, slug: isNew && !slugTouched ? slugify(name) : f.slug }))
+  }
+
+  async function onPickImage(file: File | undefined) {
+    if (!file) return
+    setError(null)
+    setUploading(true)
+    try {
+      const url = await getRepo().uploadImage(form.slug || slugify(form.name) || 'producto', file)
+      set('imageUrl', url)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo subir la imagen')
+    } finally {
+      setUploading(false)
+    }
   }
 
   function setSpec(i: number, side: 0 | 1, value: string) {
@@ -219,6 +236,46 @@ export default function AdminProductEdit() {
             <input type="checkbox" checked={!!form.featured} onChange={(e) => set('featured', e.target.checked)} />
             Destacado en la home
           </label>
+        </div>
+
+        <div className="admin-field admin-field--wide">
+          Imagen del producto
+          <div className="admin-image">
+            <span className="admin-image__preview">
+              <ProductArt product={form} />
+            </span>
+            <div className="admin-image__actions">
+              <input
+                id="product-image"
+                className="admin-image__input"
+                type="file"
+                accept={ACCEPTED_IMAGE_TYPES.join(',')}
+                disabled={uploading}
+                onChange={(e) => {
+                  void onPickImage(e.target.files?.[0])
+                  e.target.value = ''
+                }}
+              />
+              <label htmlFor="product-image" className="admin-btn admin-btn--white admin-image__btn">
+                {uploading ? 'Subiendo…' : form.imageUrl ? 'Cambiar imagen' : 'Subir imagen'}
+              </label>
+              {form.imageUrl && (
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--sm admin-btn--danger"
+                  onClick={() => set('imageUrl', undefined)}
+                  disabled={uploading}
+                >
+                  Quitar
+                </button>
+              )}
+              <p className="admin-image__hint">
+                {form.imageUrl
+                  ? 'Se muestra esta foto en la tienda.'
+                  : 'Sin foto se usa la ilustración de la marca. JPG, PNG o WebP.'}
+              </p>
+            </div>
+          </div>
         </div>
 
         <label className="admin-field admin-field--wide">
