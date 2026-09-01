@@ -7,15 +7,27 @@ import { useMascotMood } from '../context/MascotMoodContext'
 import { formatPrice, installments } from '../lib/format'
 import { saveOrder } from '../lib/orders'
 import { markCartConverted } from '../lib/carts'
+import {
+  getPaymentMethod,
+  getShippingMethod,
+  PAYMENT_METHODS,
+  SHIPPING_METHODS,
+  whatsappLink,
+} from '../data/shop'
 import { Button } from '../components/ui'
 
 const STEPS = ['Datos', 'Envío', 'Pago', 'Confirmación']
 
 export default function Checkout() {
-  const { entries, total, discount, shipping, grandTotal, coupon, clear } = useCart()
+  const { entries, total, discount, shipping, grandTotal, coupon, clear, shippingMethod, setShippingMethod } = useCart()
   const { pulse } = useMascotMood()
   const [step, setStep] = useState(0)
   const [done, setDone] = useState(false)
+  // Los datos de contacto ya no son opcionales: el pago y la entrega se
+  // terminan de coordinar por WhatsApp, así que sin eso no hay pedido.
+  const [customer, setCustomer] = useState({ name: '', email: '', whatsapp: '' })
+  const [address, setAddress] = useState({ province: 'Buenos Aires', city: '', street: '', zip: '' })
+  const [payment, setPayment] = useState(PAYMENT_METHODS[0].id)
   // B3: order number generated once, never re-created on re-render
   const orderNum = useRef(`AGN-${Math.floor(1000 + Math.random() * 9000)}`)
 
@@ -27,6 +39,7 @@ export default function Checkout() {
       setStep(step + 1)
       return
     }
+    const method = getShippingMethod(shippingMethod)
     // Se registra el pedido antes de vaciar el carrito, que es de donde salen
     // las líneas. Si el registro falla no se bloquea la compra: el cliente ya
     // llegó al final, y perder una estadística es preferible a frenarlo.
@@ -46,6 +59,10 @@ export default function Checkout() {
       shipping,
       total: grandTotal,
       coupon: coupon ?? undefined,
+      customer: { ...customer },
+      shippingMethod,
+      paymentMethod: payment,
+      address: method?.needsAddress ? { ...address } : undefined,
     }).catch(() => {
       /* el pedido se muestra igual; sólo se pierde el registro */
     })
@@ -59,22 +76,31 @@ export default function Checkout() {
   }
 
   if (done) {
+    const chosen = getPaymentMethod(payment)
+    const shipLabel = getShippingMethod(shippingMethod)?.label ?? ''
+    // Mensaje ya escrito: la persona sólo tiene que apretar enviar.
+    const msg = `¡Hola! Acabo de hacer el pedido ${orderNum.current} por ${formatPrice(grandTotal)}. Forma de pago: ${chosen?.label}. Envío: ${shipLabel}.`
     return (
       <main className="page">
         <div className="container checkout-done">
           <BrandMascot variant="rock" className="checkout-done__mascot" title="Guantín festejando tu compra" />
           <p className="checkout-done__eyebrow">Pedido #{orderNum.current}</p>
           <h1 className="page__title">¡Gracias, crack!</h1>
-          <p className="page__sub">
-            Tu pedido ya está en manos de Guantín. Te mandamos la confirmación y el seguimiento por mail y WhatsApp.
+          <p className="page__sub">{chosen?.next}</p>
+          <p className="checkout-done__next">
+            Escribinos por WhatsApp con el número de pedido y lo cerramos en el momento.
           </p>
-          <Button to="/" arrow>
+          <a className="btn btn--primary" href={whatsappLink(msg)} target="_blank" rel="noreferrer">
+            <span className="btn__label">Enviar el pedido por WhatsApp</span>
+          </a>
+          <Button to="/" variant="ghost">
             Volver al inicio
           </Button>
         </div>
       </main>
     )
   }
+
 
   return (
     <main className="page">
@@ -98,82 +124,134 @@ export default function Checkout() {
           <form className="checkout__form" onSubmit={next} data-clarity-mask="true">
             {step === 0 && (
               <fieldset>
-                <legend>Datos personales</legend>
+                <legend>Datos de contacto</legend>
                 <label className="field">
                   <span>Nombre completo*</span>
-                  <input required autoComplete="name" placeholder="Juan Pérez" />
+                  <input
+                    required
+                    autoComplete="name"
+                    placeholder="Juan Pérez"
+                    value={customer.name}
+                    onChange={(e) => setCustomer((c) => ({ ...c, name: e.target.value }))}
+                  />
                 </label>
                 <label className="field">
                   <span>Email*</span>
-                  <input required type="email" autoComplete="email" placeholder="juanperez@mail.com" />
+                  <input
+                    required
+                    type="email"
+                    autoComplete="email"
+                    placeholder="juanperez@mail.com"
+                    value={customer.email}
+                    onChange={(e) => setCustomer((c) => ({ ...c, email: e.target.value }))}
+                  />
                 </label>
                 <label className="field">
-                  <span>Teléfono*</span>
-                  <input required type="tel" autoComplete="tel" placeholder="11 1234 5678" />
+                  <span>WhatsApp*</span>
+                  <input
+                    required
+                    type="tel"
+                    autoComplete="tel"
+                    placeholder="11 3696 2811"
+                    value={customer.whatsapp}
+                    onChange={(e) => setCustomer((c) => ({ ...c, whatsapp: e.target.value }))}
+                  />
+                  <small className="field__hint">Por acá coordinamos la entrega y el pago.</small>
                 </label>
               </fieldset>
             )}
             {step === 1 && (
               <fieldset>
-                <legend>Dirección de envío</legend>
-                <div className="field-row">
-                  <label className="field">
-                    <span>Provincia*</span>
-                    <select required defaultValue="Buenos Aires">
-                      {['Buenos Aires', 'CABA', 'Córdoba', 'Santa Fe', 'Mendoza', 'Tucumán', 'Otra'].map((p) => (
-                        <option key={p}>{p}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="field">
-                    <span>Ciudad*</span>
-                    <input required placeholder="La Plata" />
-                  </label>
+                <legend>Forma de envío</legend>
+                <div className="choices">
+                  {SHIPPING_METHODS.map((m) => (
+                    <label key={m.id} className={`choice ${shippingMethod === m.id ? 'choice--on' : ''}`}>
+                      <input
+                        type="radio"
+                        name="envio"
+                        value={m.id}
+                        checked={shippingMethod === m.id}
+                        onChange={() => setShippingMethod(m.id)}
+                      />
+                      <span className="choice__body">
+                        <strong>{m.label}</strong>
+                        <small>{m.detail}</small>
+                      </span>
+                      <span className="choice__price">{m.price === 0 ? 'Gratis' : formatPrice(m.price)}</span>
+                    </label>
+                  ))}
                 </div>
-                <label className="field">
-                  <span>Dirección*</span>
-                  <input required autoComplete="street-address" placeholder="Calle 123 #456" />
-                </label>
-                <div className="field-row">
-                  <label className="field">
-                    <span>Código postal*</span>
-                    <input required autoComplete="postal-code" placeholder="1900" />
-                  </label>
-                  <label className="field">
-                    <span>Depto / Piso</span>
-                    <input placeholder="Opcional" />
-                  </label>
-                </div>
+
+                {getShippingMethod(shippingMethod)?.needsAddress && (
+                  <>
+                    <div className="field-row">
+                      <label className="field">
+                        <span>Provincia*</span>
+                        <select
+                          required
+                          value={address.province}
+                          onChange={(e) => setAddress((a) => ({ ...a, province: e.target.value }))}
+                        >
+                          {['Buenos Aires', 'CABA', 'Córdoba', 'Santa Fe', 'Mendoza', 'Tucumán', 'Otra'].map((p) => (
+                            <option key={p}>{p}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="field">
+                        <span>Ciudad*</span>
+                        <input
+                          required
+                          placeholder="La Plata"
+                          value={address.city}
+                          onChange={(e) => setAddress((a) => ({ ...a, city: e.target.value }))}
+                        />
+                      </label>
+                    </div>
+                    <label className="field">
+                      <span>Dirección*</span>
+                      <input
+                        required
+                        autoComplete="street-address"
+                        placeholder="Calle 123 #456"
+                        value={address.street}
+                        onChange={(e) => setAddress((a) => ({ ...a, street: e.target.value }))}
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Código postal*</span>
+                      <input
+                        required
+                        autoComplete="postal-code"
+                        placeholder="1900"
+                        value={address.zip}
+                        onChange={(e) => setAddress((a) => ({ ...a, zip: e.target.value }))}
+                      />
+                    </label>
+                  </>
+                )}
               </fieldset>
             )}
             {step === 2 && (
               <fieldset>
-                <legend>Pago</legend>
-                <label className="field">
-                  <span>Número de tarjeta*</span>
-                  <input required inputMode="numeric" placeholder="4242 4242 4242 4242" />
-                </label>
-                <label className="field">
-                  <span>Nombre en la tarjeta*</span>
-                  <input required placeholder="JUAN PEREZ" />
-                </label>
-                <div className="field-row">
-                  <label className="field">
-                    <span>Vencimiento*</span>
-                    <input required placeholder="MM/AA" />
-                  </label>
-                  <label className="field">
-                    <span>CVV*</span>
-                    <input required inputMode="numeric" placeholder="123" />
-                  </label>
+                <legend>Forma de pago</legend>
+                <div className="choices">
+                  {PAYMENT_METHODS.map((m) => (
+                    <label key={m.id} className={`choice ${payment === m.id ? 'choice--on' : ''}`}>
+                      <input
+                        type="radio"
+                        name="pago"
+                        value={m.id}
+                        checked={payment === m.id}
+                        onChange={() => setPayment(m.id)}
+                      />
+                      <span className="choice__body">
+                        <strong>{m.label}</strong>
+                        <small>{m.detail}</small>
+                      </span>
+                    </label>
+                  ))}
                 </div>
-                <label className="field">
-                  <span>Cuotas</span>
-                  <select defaultValue="3">
-                    <option value="1">1 pago de {formatPrice(grandTotal)}</option>
-                    <option value="3">{installments(grandTotal)}</option>
-                  </select>
-                </label>
+                <p className="checkout__note">{getPaymentMethod(payment)?.next}</p>
               </fieldset>
             )}
 

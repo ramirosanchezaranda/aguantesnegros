@@ -122,6 +122,13 @@ create table if not exists public.orders (
   coupon     text
 );
 
+-- Datos del comprador y cómo se cierra el pedido. Son datos personales:
+-- por eso `orders` sólo la puede leer el admin (política más abajo).
+alter table public.orders add column if not exists customer jsonb;
+alter table public.orders add column if not exists shipping_method text;
+alter table public.orders add column if not exists payment_method text;
+alter table public.orders add column if not exists address jsonb;
+
 create index if not exists orders_created_at_idx on public.orders (created_at desc);
 
 alter table public.orders enable row level security;

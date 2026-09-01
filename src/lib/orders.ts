@@ -18,6 +18,21 @@ export interface OrderLine {
   category: string
 }
 
+/** Datos de contacto del comprador. Son datos personales: sólo los lee el
+ *  admin, y hacen falta porque el pago y la entrega se cierran por WhatsApp. */
+export interface Customer {
+  name: string
+  email: string
+  whatsapp: string
+}
+
+export interface ShippingAddress {
+  province: string
+  city: string
+  street: string
+  zip: string
+}
+
 export interface Order {
   id: string
   /** ISO 8601. */
@@ -28,6 +43,10 @@ export interface Order {
   shipping: number
   total: number
   coupon?: string
+  customer?: Customer
+  shippingMethod?: string
+  paymentMethod?: string
+  address?: ShippingAddress
 }
 
 const KEY = 'agn-orders-v1'
@@ -51,6 +70,10 @@ interface OrderRow {
   shipping: number
   total: number
   coupon: string | null
+  customer: Customer | null
+  shipping_method: string | null
+  payment_method: string | null
+  address: ShippingAddress | null
 }
 
 function rowToOrder(r: OrderRow): Order {
@@ -63,6 +86,10 @@ function rowToOrder(r: OrderRow): Order {
     shipping: r.shipping,
     total: r.total,
     coupon: r.coupon ?? undefined,
+    customer: r.customer ?? undefined,
+    shippingMethod: r.shipping_method ?? undefined,
+    paymentMethod: r.payment_method ?? undefined,
+    address: r.address ?? undefined,
   }
 }
 
@@ -89,6 +116,10 @@ export async function saveOrder(order: Order): Promise<void> {
       shipping: order.shipping,
       total: order.total,
       coupon: order.coupon ?? null,
+      customer: order.customer ?? null,
+      shipping_method: order.shippingMethod ?? null,
+      payment_method: order.paymentMethod ?? null,
+      address: order.address ?? null,
     }),
   })
   if (!res.ok) {

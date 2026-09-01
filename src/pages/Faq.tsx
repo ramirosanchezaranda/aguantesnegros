@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import BrandMascot from '../components/mascot/BrandMascot'
+import { whatsappLink } from '../data/shop'
 import { FAQS } from '../data/catalog'
 import { Accordion, Button, Reveal } from '../components/ui'
 
@@ -34,7 +35,7 @@ export default function Faq() {
 
         <div className="faq-cta">
           <p>¿No encontraste lo que buscabas?</p>
-          <a className="btn btn--primary" href="https://wa.me/5491100000000" target="_blank" rel="noreferrer">
+          <a className="btn btn--primary" href={whatsappLink()} target="_blank" rel="noreferrer">
             <span className="btn__label">Escribinos por WhatsApp</span>
           </a>
         </div>
