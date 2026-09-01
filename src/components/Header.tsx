@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import LogoMascot from './mascot/LogoMascot'
 import { useMascotMood } from '../context/MascotMoodContext'
 import { useCart } from '../context/CartContext'
@@ -87,13 +87,6 @@ export default function Header() {
               <MenuIcon open={menuOpen} />
               <span className="header__menu-label">Menú</span>
             </button>
-            <nav className="header__nav" aria-label="Principal">
-              <NavLink to="/compra-rapida" className="header__nav-hot">Compra rápida ⚡</NavLink>
-              <NavLink to="/categorias">Categorías</NavLink>
-              <NavLink to="/categoria/bioseguridad">Bioseguridad</NavLink>
-              <NavLink to="/categoria/pigmentos">Pigmentos</NavLink>
-              <NavLink to="/faq">FAQ</NavLink>
-            </nav>
           </div>
 
           <Link
@@ -139,7 +132,16 @@ export default function Header() {
           className={`drawer ${menuOpen ? 'drawer--open' : ''}`}
           aria-hidden={!menuOpen}
         >
-          <nav className="drawer__nav container" aria-label="Categorías">
+          <nav className="drawer__nav container" aria-label="Navegación principal">
+            <Link
+              to="/compra-rapida"
+              className="drawer__hot"
+              onClick={() => setMenuOpen(false)}
+              style={{ transitionDelay: '40ms' }}
+            >
+              Compra rápida
+              <span className="drawer__tag">¿No sabés qué comprar? Te lo armamos</span>
+            </Link>
             <p className="drawer__eyebrow">Categorías</p>
             {categories.map((c, i) => (
               <Link key={c.slug} to={`/categoria/${c.slug}`} onClick={() => setMenuOpen(false)} style={{ transitionDelay: `${60 + i * 30}ms` }}>
