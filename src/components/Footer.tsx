@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import LogoMascot from './mascot/LogoMascot'
 import { useCatalog } from '../context/CatalogContext'
 import { InstagramIcon, WhatsAppIcon, Spark4 } from './ui'
+import { CONTACT_EMAIL, whatsappLink } from '../data/shop'
 
 export default function Footer() {
   const { categories } = useCatalog()
@@ -22,7 +23,7 @@ export default function Footer() {
             Todo lo que necesitás, en un solo lugar.
           </p>
           <div className="footer__social">
-            <a href="https://wa.me/5491100000000" target="_blank" rel="noreferrer" aria-label="WhatsApp">
+            <a href={whatsappLink()} target="_blank" rel="noreferrer" aria-label="WhatsApp">
               <WhatsAppIcon />
               <span>WhatsApp</span>
             </a>
@@ -48,13 +49,13 @@ export default function Footer() {
           <Link to="/faq">Envíos</Link>
           <Link to="/faq">Cambios y devoluciones</Link>
           <Link to="/faq">Garantías</Link>
-          <a href="mailto:hola@aguantesnegros.com.ar">hola@aguantesnegros.com.ar</a>
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
         </nav>
 
         <div className="footer__col footer__cta">
           <p className="footer__title">¿Dudas antes de comprar?</p>
           <p className="footer__text">Escribinos y te asesora un tatuador, no un bot.</p>
-          <a className="btn btn--light" href="https://wa.me/5491100000000" target="_blank" rel="noreferrer">
+          <a className="btn btn--light" href={whatsappLink()} target="_blank" rel="noreferrer">
             <span className="btn__label">Hablar por WhatsApp</span>
           </a>
         </div>

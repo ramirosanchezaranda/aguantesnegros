@@ -88,6 +88,7 @@ export default function Header() {
               <span className="header__menu-label">Menú</span>
             </button>
             <nav className="header__nav" aria-label="Principal">
+              <NavLink to="/compra-rapida" className="header__nav-hot">Compra rápida ⚡</NavLink>
               <NavLink to="/categorias">Categorías</NavLink>
               <NavLink to="/categoria/bioseguridad">Bioseguridad</NavLink>
               <NavLink to="/categoria/pigmentos">Pigmentos</NavLink>

@@ -691,11 +691,11 @@ export const BRANDS = [
 export const FAQS: [string, string][] = [
   [
     '¿Hacen envíos a todo el país?',
-    'Sí, llegamos a todo el país con Correo Argentino y Andreani. Los pedidos se despachan en 24 hs hábiles y te mandamos el seguimiento por WhatsApp y mail.',
+    'Sí, llegamos a todo el país con OCA y Correo Argentino, a sucursal o a domicilio. Si estás cerca, también podemos coordinar un punto de encuentro sin costo. Te mandamos el seguimiento por WhatsApp.',
   ],
   [
     '¿Cuáles son los métodos de pago?',
-    'Aceptamos todas las tarjetas de crédito y débito, Mercado Pago y transferencia bancaria. Con tarjetas seleccionadas tenés 3 cuotas sin interés.',
+    'Efectivo al recibir el pedido, transferencia (nos mandás el comprobante por WhatsApp) o tarjeta de débito y crédito, con un link de Mercado Pago que te enviamos por WhatsApp.',
   ],
   [
     '¿Cuánto tarda en llegar mi pedido?',

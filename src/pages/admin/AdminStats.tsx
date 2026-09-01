@@ -5,6 +5,7 @@ import { listOrders, type Order } from '../../lib/orders'
 import { listCarts, type TrackedCart } from '../../lib/carts'
 import { stockOf } from '../../data/catalog'
 import { clarityLinks } from '../../lib/clarity'
+import { whatsappLink } from '../../data/shop'
 import { formatPrice } from '../../lib/format'
 
 const LOW_STOCK = 5
@@ -106,6 +107,42 @@ export default function AdminStats() {
       byCategory: [...byCategory.entries()].sort((a, b) => b[1] - a[1]),
     }
   }, [orders, period])
+
+  // ---- Clientes ----------------------------------------------------------
+  // Se arman desde los pedidos: el email es la clave, porque el WhatsApp suele
+  // escribirse distinto (con o sin 15, con o sin +54).
+  const customers = useMemo(() => {
+    if (!orders) return []
+    const map = new Map<
+      string,
+      { name: string; email: string; whatsapp: string; orders: number; spent: number; last: string }
+    >()
+    for (const o of orders) {
+      const c = o.customer
+      if (!c?.email) continue
+      const key = c.email.trim().toLowerCase()
+      const prev = map.get(key)
+      if (prev) {
+        prev.orders += 1
+        prev.spent += o.total
+        if (o.createdAt > prev.last) {
+          prev.last = o.createdAt
+          prev.name = c.name || prev.name
+          prev.whatsapp = c.whatsapp || prev.whatsapp
+        }
+      } else {
+        map.set(key, {
+          name: c.name,
+          email: c.email,
+          whatsapp: c.whatsapp,
+          orders: 1,
+          spent: o.total,
+          last: o.createdAt,
+        })
+      }
+    }
+    return [...map.values()].sort((a, b) => b.spent - a.spent)
+  }, [orders])
 
   // ---- Carritos ----------------------------------------------------------
   const cartStats = useMemo(() => {
@@ -312,6 +349,73 @@ export default function AdminStats() {
               </ul>
             </>
           )}
+        </>
+      )}
+
+      {/* ---- CLIENTES ---- */}
+      <h2 className="stat-section">Clientes</h2>
+      {customers.length === 0 ? (
+        <p className="admin-alert">
+          Todavía no hay clientes registrados. Se arman solos a partir de los pedidos: cada compra guarda nombre, email
+          y WhatsApp para poder coordinar la entrega y el pago.
+        </p>
+      ) : (
+        <>
+          <div className="stat-grid">
+            <div className="stat-card">
+              <span className="stat-card__label">Clientes</span>
+              <strong className="stat-card__value">{customers.length}</strong>
+            </div>
+            <div className="stat-card">
+              <span className="stat-card__label">Con más de una compra</span>
+              <strong className="stat-card__value">{customers.filter((c) => c.orders > 1).length}</strong>
+              <span className="stat-card__foot">La recompra es el termómetro del rubro</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-card__label">Gasto promedio</span>
+              <strong className="stat-card__value">
+                {formatPrice(Math.round(customers.reduce((s, c) => s + c.spent, 0) / customers.length))}
+              </strong>
+            </div>
+          </div>
+
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Contacto</th>
+                  <th>Pedidos</th>
+                  <th>Total gastado</th>
+                  <th>Última compra</th>
+                </tr>
+              </thead>
+              <tbody>
+                {customers.map((c) => (
+                  <tr key={c.email}>
+                    <td>
+                      <strong>{c.name || '—'}</strong>
+                    </td>
+                    <td>
+                      <span className="admin-table__sub">{c.email}</span>
+                      {c.whatsapp && (
+                        <a href={whatsappLink()} target="_blank" rel="noreferrer" className="stat-wa">
+                          {c.whatsapp} ↗
+                        </a>
+                      )}
+                    </td>
+                    <td>{c.orders}</td>
+                    <td>{formatPrice(c.spent)}</td>
+                    <td>{new Date(c.last).toLocaleDateString('es-AR')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="admin-page__meta">
+            Son datos personales: tratalos con cuidado y no los uses para nada que la persona no haya esperado al
+            comprar.
+          </p>
         </>
       )}
 
