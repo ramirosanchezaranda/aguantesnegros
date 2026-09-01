@@ -67,6 +67,35 @@ export function getShippingMethod(id: string): ShippingMethod | undefined {
   return SHIPPING_METHODS.find((m) => m.id === id)
 }
 
+/** Las 24 jurisdicciones. Se pide siempre: hace falta para cotizar el envío
+ *  —incluso a sucursal— y es lo que permite ver de dónde compran. */
+export const PROVINCES = [
+  'Buenos Aires',
+  'CABA',
+  'Catamarca',
+  'Chaco',
+  'Chubut',
+  'Córdoba',
+  'Corrientes',
+  'Entre Ríos',
+  'Formosa',
+  'Jujuy',
+  'La Pampa',
+  'La Rioja',
+  'Mendoza',
+  'Misiones',
+  'Neuquén',
+  'Río Negro',
+  'Salta',
+  'San Juan',
+  'San Luis',
+  'Santa Cruz',
+  'Santa Fe',
+  'Santiago del Estero',
+  'Tierra del Fuego',
+  'Tucumán',
+] as const
+
 // ---- Pagos ----------------------------------------------------------------
 // Todos se cierran por WhatsApp: la tienda no cobra online todavía.
 
