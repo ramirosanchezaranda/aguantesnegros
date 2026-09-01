@@ -10,7 +10,9 @@ export default function AdminLayout() {
   if (!session) return <AdminLogin />
 
   return (
-    <div className="admin">
+    // Defensa en profundidad: si Clarity ya se cargó en la tienda y el admin
+    // navega hasta acá, el contenido igual va enmascarado.
+    <div className="admin" data-clarity-mask="true">
       <aside className="admin__side">
         <div className="admin__brand">
           <span className="admin__brand-mark">◑</span>

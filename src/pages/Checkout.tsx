@@ -94,7 +94,8 @@ export default function Checkout() {
         </ol>
 
         <div className="checkout">
-          <form className="checkout__form" onSubmit={next}>
+          {/* Acá se escriben nombre, teléfono, dirección y tarjeta: nunca se graba. */}
+          <form className="checkout__form" onSubmit={next} data-clarity-mask="true">
             {step === 0 && (
               <fieldset>
                 <legend>Datos personales</legend>
