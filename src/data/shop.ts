@@ -110,3 +110,19 @@ export function customerWhatsappLink(raw: string, message?: string): string | nu
   const base = `https://wa.me/549${n}`
   return message ? `${base}?text=${encodeURIComponent(message)}` : base
 }
+
+// ---- Datos del responsable (Ley 25.326) -----------------------------------
+// La ley de protección de datos personales pide que quien guarda los datos
+// se identifique con nombre y domicilio. El mail y el WhatsApp ya alcanzan
+// para que alguien ejerza sus derechos, así que la política funciona sin lo
+// demás; completá estos dos y aparecen solos en /privacidad.
+
+/** Razón social o nombre del titular del negocio. */
+export const LEGAL_NAME = ''
+/** CUIT o CUIL del responsable, si corresponde. */
+export const LEGAL_TAX_ID = ''
+/** Domicilio a los efectos legales. */
+export const LEGAL_ADDRESS = ''
+
+/** Última actualización de la política de privacidad (ISO, sin hora). */
+export const PRIVACY_UPDATED = '2026-09-01'

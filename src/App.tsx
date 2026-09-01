@@ -10,6 +10,7 @@ import Product from './pages/Product'
 import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
 import Faq from './pages/Faq'
+import Privacidad from './pages/Privacidad'
 import CompraRapida from './pages/CompraRapida'
 import NotFound from './pages/NotFound'
 import AdminLayout from './pages/admin/AdminLayout'
@@ -54,6 +55,7 @@ export default function App() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/compra-rapida" element={<CompraRapida />} />
           <Route path="/faq" element={<Faq />} />
+          <Route path="/privacidad" element={<Privacidad />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminProducts />} />
             <Route path="productos/nuevo" element={<AdminProductEdit />} />

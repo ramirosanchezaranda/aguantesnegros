@@ -263,6 +263,14 @@ export default function Checkout() {
                 {step === 2 ? 'Confirmar pedido' : step === 1 ? 'Continuar con pago' : 'Continuar con envío'}
               </Button>
             </div>
+
+            {/* Aviso de privacidad al pie del formulario: se lee donde se
+                cargan los datos, no escondido en el footer. */}
+            <p className="checkout__privacy">
+              * Usamos tus datos sólo para mandarte el pedido y coordinar el pago. No los vendemos ni los compartimos
+              con nadie más que el correo que lleva el paquete, y no guardamos datos de tarjeta. Podés pedirnos que los
+              borremos cuando quieras: <Link to="/privacidad">política de privacidad</Link>.
+            </p>
           </form>
 
           <aside className="summary summary--sticky">

@@ -31,6 +31,10 @@
   --muted: var(--muted);
   --muted-strong: var(--muted-strong);
   --tint: rgba(11, 11, 11, 0.06);
+  /* Enlaces dentro de texto corrido. El rojo de marca sobre el crema da
+     3.82:1 y no llega al 4.5:1 que necesita un texto para leerse, así que
+     los links usan un rojo más oscuro. En modo oscuro el de marca ya pasa. */
+  --link: #b3231f;
   --warn-bg: #fff7ea;
   --danger-bg: #fdecea;
   --elev: #0b0b0b; /* fondo de zonas de marca: header, footer, banner */
@@ -72,6 +76,7 @@ html[data-theme='dark'] {
   --muted: rgba(246, 241, 231, 0.6);
   --muted-strong: rgba(246, 241, 231, 0.78);
   --tint: rgba(246, 241, 231, 0.08);
+  --link: var(--red);
   --warn-bg: rgba(224, 165, 60, 0.16);
   --danger-bg: rgba(229, 57, 53, 0.16);
   --line: rgba(246, 241, 231, 0.16);
@@ -4192,4 +4197,117 @@ html[data-theme='dark'] .hero__mascot {
   max-width: 42ch;
   margin: 0 auto var(--s-2);
   font-size: 14px;
+}
+
+/* ==================================================================
+   LEGAL — política de privacidad
+   ================================================================== */
+
+/* Texto largo para leer, no para escanear: medida corta y aire entre
+   secciones. El ancho se limita en ch para que no dependa del viewport. */
+.legal {
+  max-width: 68ch;
+  margin-block: var(--s-4) var(--s-8);
+  font-size: 15px;
+  line-height: 1.65;
+}
+.legal__updated {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-strong);
+  margin-bottom: var(--s-3);
+}
+.legal__lead {
+  font-size: 17px;
+  font-weight: 500;
+  padding: var(--s-3);
+  border-left: 3px solid var(--red);
+  background: var(--tint);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+}
+.legal h2 {
+  font-size: 20px;
+  margin-top: var(--s-6);
+  margin-bottom: var(--s-2);
+  scroll-margin-top: 90px;
+}
+.legal h3 {
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-strong);
+  margin-top: var(--s-4);
+  margin-bottom: var(--s-2);
+}
+.legal p {
+  margin-bottom: var(--s-2);
+}
+.legal ul {
+  margin: 0 0 var(--s-2);
+  padding-left: 1.15em;
+  display: grid;
+  gap: 10px;
+}
+.legal li {
+  /* Grid: sin esto el texto largo de un item no puede achicarse. */
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.legal a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Los dos párrafos que la Ley 25.326 exige palabra por palabra. Se marcan
+   como cita para que se lean como lo que son: texto ajeno, no nuestro. */
+.legal__legend {
+  font-size: 13px;
+  color: var(--muted-strong);
+  padding: var(--s-2) var(--s-3);
+  border-left: 2px solid var(--line);
+  background: var(--tint);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+}
+
+.legal__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: var(--s-6);
+  padding: var(--s-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+}
+.legal__foot p {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Nota al pie del FAQ, apuntando a la política. */
+.faq-note {
+  margin-top: var(--s-4);
+  font-size: 14px;
+  color: var(--muted-strong);
+}
+.faq-note a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* El asterisco debajo del formulario del checkout. */
+.checkout__privacy {
+  margin-top: var(--s-3);
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--muted-strong);
+}
+.checkout__privacy a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
