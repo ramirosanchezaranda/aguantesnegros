@@ -7,6 +7,7 @@ import { MascotMoodProvider } from './context/MascotMoodContext'
 import { CatalogProvider } from './context/CatalogContext'
 import { AdminAuthProvider } from './context/AdminAuthContext'
 import { CartProvider } from './context/CartContext'
+import { SettingsProvider } from './context/SettingsContext'
 import './styles/global.css'
 
 // HashRouter para builds embebidos (p. ej. preview de una sola página),
@@ -20,9 +21,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <MascotMoodProvider>
           <CatalogProvider>
             <AdminAuthProvider>
-              <CartProvider>
-                <App />
-              </CartProvider>
+              <SettingsProvider>
+                <CartProvider>
+                  <App />
+                </CartProvider>
+              </SettingsProvider>
             </AdminAuthProvider>
           </CatalogProvider>
         </MascotMoodProvider>

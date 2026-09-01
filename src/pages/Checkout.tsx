@@ -7,12 +7,12 @@ import { useMascotMood } from '../context/MascotMoodContext'
 import { formatPrice, installments } from '../lib/format'
 import { saveOrder } from '../lib/orders'
 import { markCartConverted } from '../lib/carts'
+import { useSettings } from '../context/SettingsContext'
 import {
   getPaymentMethod,
   getShippingMethod,
   PAYMENT_METHODS,
   PROVINCES,
-  SHIPPING_METHODS,
   whatsappLink,
 } from '../data/shop'
 import { Button } from '../components/ui'
@@ -22,6 +22,7 @@ const STEPS = ['Datos', 'Envío', 'Pago', 'Confirmación']
 export default function Checkout() {
   const { entries, total, discount, shipping, grandTotal, coupon, clear, shippingMethod, setShippingMethod } = useCart()
   const { pulse } = useMascotMood()
+  const { shippingMethods } = useSettings()
   const [step, setStep] = useState(0)
   const [done, setDone] = useState(false)
   // Los datos de contacto ya no son opcionales: el pago y la entrega se
@@ -167,7 +168,7 @@ export default function Checkout() {
               <fieldset>
                 <legend>Forma de envío</legend>
                 <div className="choices">
-                  {SHIPPING_METHODS.map((m) => (
+                  {shippingMethods.map((m) => (
                     <label key={m.id} className={`choice ${shippingMethod === m.id ? 'choice--on' : ''}`}>
                       <input
                         type="radio"

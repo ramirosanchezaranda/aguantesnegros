@@ -27,6 +27,7 @@ export default function AdminLayout() {
           </NavLink>
           <NavLink to="/admin/categorias">Categorías</NavLink>
           <NavLink to="/admin/estadisticas">Estadísticas</NavLink>
+          <NavLink to="/admin/envios">Envíos</NavLink>
         </nav>
         <div className="admin__side-foot">
           <p className="admin__backend">

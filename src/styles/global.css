@@ -4063,3 +4063,71 @@ html[data-theme='dark'] .hero__mascot {
 .summary {
   min-width: 0;
 }
+
+/* Panel — configuración de envíos */
+.ship-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ship-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  transition: opacity 0.2s;
+}
+.ship-row--off {
+  opacity: 0.5;
+}
+.ship-row__on input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--red);
+  cursor: pointer;
+}
+.ship-row__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ship-row__info small {
+  font-size: 12px;
+  color: var(--muted-strong);
+}
+.ship-row__price {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-strong);
+}
+.ship-row__price input {
+  width: 110px;
+  font: inherit;
+  font-weight: 700;
+  text-align: right;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+}
+
+@media (max-width: 600px) {
+  .ship-row {
+    flex-wrap: wrap;
+  }
+  .ship-row__price {
+    width: 100%;
+    margin-left: 0;
+  }
+  .ship-row__price input {
+    width: 100%;
+  }
+}

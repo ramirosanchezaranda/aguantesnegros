@@ -2,10 +2,10 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { stockOf, type Product } from '../data/catalog'
 import { useCatalog } from './CatalogContext'
 import { trackCart } from '../lib/carts'
-import { getShippingMethod, SHIPPING_METHODS } from '../data/shop'
+import { SHIPPING_METHODS } from '../data/shop'
+import { useSettings } from './SettingsContext'
 import { useMascotMood } from './MascotMoodContext'
 
-export const FREE_SHIPPING_THRESHOLD = 50000
 
 const COUPONS: Record<string, number> = {
   GUANTIN10: 0.1,
@@ -50,6 +50,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [shippingMethod, setShippingMethod] = useState<string>(SHIPPING_METHODS[0].id)
   const { pulse } = useMascotMood()
   const { getProduct } = useCatalog()
+  const { shippingMethods, freeShippingThreshold } = useSettings()
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
@@ -82,10 +83,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const rate = coupon ? (COUPONS[coupon] ?? 0) : 0
     const discount = Math.round(total * rate)
     const afterDiscount = total - discount
-    // El envío depende del método elegido. Se bonifica por monto, salvo el
-    // punto de encuentro, que ya es gratis.
-    const method = getShippingMethod(shippingMethod) ?? SHIPPING_METHODS[0]
-    const shipping = afterDiscount >= FREE_SHIPPING_THRESHOLD ? 0 : method.price
+    // El envío depende del método elegido, con los precios que fijó la tienda
+    // desde el panel. Se bonifica por monto, salvo el punto de encuentro, que
+    // ya es gratis.
+    const method = shippingMethods.find((m) => m.id === shippingMethod) ?? shippingMethods[0] ?? SHIPPING_METHODS[0]
+    const shipping = afterDiscount >= freeShippingThreshold ? 0 : method.price
     const grandTotal = afterDiscount + shipping
     return {
       items,
@@ -134,7 +136,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setCoupon(null)
       },
     }
-  }, [items, coupon, shippingMethod, pulse, getProduct])
+  }, [items, coupon, shippingMethod, shippingMethods, freeShippingThreshold, pulse, getProduct])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

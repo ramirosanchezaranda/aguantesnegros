@@ -17,6 +17,7 @@ import AdminProducts from './pages/admin/AdminProducts'
 import AdminProductEdit from './pages/admin/AdminProductEdit'
 import AdminCategories from './pages/admin/AdminCategories'
 import AdminStats from './pages/admin/AdminStats'
+import AdminShipping from './pages/admin/AdminShipping'
 import { initClarity } from './lib/clarity'
 
 function ScrollToTop() {
@@ -58,6 +59,7 @@ export default function App() {
             <Route path="productos/:slug" element={<AdminProductEdit />} />
             <Route path="categorias" element={<AdminCategories />} />
             <Route path="estadisticas" element={<AdminStats />} />
+            <Route path="envios" element={<AdminShipping />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
