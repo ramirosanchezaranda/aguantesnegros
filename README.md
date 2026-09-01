@@ -124,3 +124,20 @@ de varios MB termina pesando decenas de KB.
 
 Volver a correr `seed.sql` **no borra las fotos**: el upsert no toca la columna
 `image_url`.
+
+### Analítica de comportamiento (opcional)
+
+Con `VITE_CLARITY_ID` definida, la tienda carga [Microsoft Clarity](https://clarity.microsoft.com),
+que da mapas de clic, mapas de scroll y grabaciones de sesión. Sin la variable
+no se carga ningún script de terceros.
+
+Dos recaudos deliberados:
+
+- **No se carga en `/admin`.** Ahí se ven costos, márgenes y stock; no tiene
+  sentido mandarle eso a un tercero. Si alguien llega al panel navegando desde
+  la tienda, el panel va marcado con `data-clarity-mask` igual.
+- **El formulario de checkout va enmascarado**, porque ahí se escriben nombre,
+  teléfono, dirección y datos de tarjeta.
+
+Grabar sesiones implica tratar datos de comportamiento de personas: hace falta
+una política de privacidad. En Argentina aplica la Ley 25.326.

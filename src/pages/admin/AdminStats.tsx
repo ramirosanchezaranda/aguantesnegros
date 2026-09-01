@@ -2,10 +2,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useCatalog } from '../../context/CatalogContext'
 import { listOrders, type Order } from '../../lib/orders'
+import { listCarts, type TrackedCart } from '../../lib/carts'
 import { stockOf } from '../../data/catalog'
+import { clarityLinks } from '../../lib/clarity'
 import { formatPrice } from '../../lib/format'
 
 const LOW_STOCK = 5
+
+/** Un carrito sin tocar por más de estas horas ya no es una sesión activa. */
+const ABANDON_HOURS = 2
 
 type Period = 7 | 30 | 90 | 0 // 0 = todo
 
@@ -33,6 +38,7 @@ function Bar({ label, value, max, hint }: { label: string; value: number; max: n
 export default function AdminStats() {
   const { products, categories } = useCatalog()
   const [orders, setOrders] = useState<Order[] | null>(null)
+  const [carts, setCarts] = useState<TrackedCart[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [period, setPeriod] = useState<Period>(30)
 
@@ -41,6 +47,9 @@ export default function AdminStats() {
     listOrders()
       .then((o) => alive && setOrders(o))
       .catch((e) => alive && setError(e instanceof Error ? e.message : 'No se pudieron leer los pedidos'))
+    listCarts()
+      .then((c) => alive && setCarts(c))
+      .catch(() => alive && setCarts([]))
     return () => {
       alive = false
     }
@@ -97,6 +106,39 @@ export default function AdminStats() {
       byCategory: [...byCategory.entries()].sort((a, b) => b[1] - a[1]),
     }
   }, [orders, period])
+
+  // ---- Carritos ----------------------------------------------------------
+  const cartStats = useMemo(() => {
+    if (!carts) return null
+    const since = period === 0 ? 0 : Date.now() - period * 24 * 60 * 60 * 1000
+    const inRange = carts.filter((c) => new Date(c.updatedAt).getTime() >= since)
+    const staleBefore = Date.now() - ABANDON_HOURS * 60 * 60 * 1000
+
+    const converted = inRange.filter((c) => c.convertedAt)
+    // Los carritos tocados hace un rato pueden ser sesiones todavía abiertas:
+    // contarlos como abandonados inflaría el problema.
+    const abandoned = inRange.filter((c) => !c.convertedAt && new Date(c.updatedAt).getTime() < staleBefore)
+    const active = inRange.length - converted.length - abandoned.length
+
+    const byProduct = new Map<string, { name: string; qty: number }>()
+    for (const c of abandoned) {
+      for (const i of c.items) {
+        const prev = byProduct.get(i.slug) ?? { name: i.name, qty: 0 }
+        prev.qty += i.qty
+        byProduct.set(i.slug, prev)
+      }
+    }
+    const decided = converted.length + abandoned.length
+    return {
+      total: inRange.length,
+      converted: converted.length,
+      abandoned: abandoned.length,
+      active,
+      lostValue: abandoned.reduce((s, c) => s + c.subtotal, 0),
+      rate: decided > 0 ? Math.round((converted.length / decided) * 100) : null,
+      topAbandoned: [...byProduct.values()].sort((a, b) => b.qty - a.qty).slice(0, 5),
+    }
+  }, [carts, period])
 
   // ---- Inventario (disponible siempre) -----------------------------------
   const inventory = useMemo(() => {
@@ -213,6 +255,93 @@ export default function AdminStats() {
             </ul>
           </>
         )
+      )}
+
+      {/* ---- CARRITOS ---- */}
+      <h2 className="stat-section">Carritos</h2>
+      {!cartStats || cartStats.total === 0 ? (
+        <p className="admin-alert">
+          Todavía no se registraron carritos en este período. Se cuentan de forma anónima —sólo productos y cantidades,
+          ningún dato personal— desde que alguien agrega algo al carrito.
+        </p>
+      ) : (
+        <>
+          <div className="stat-grid">
+            <div className="stat-card">
+              <span className="stat-card__label">Conversión</span>
+              <strong className="stat-card__value">{cartStats.rate === null ? '—' : `${cartStats.rate}%`}</strong>
+              <span className="stat-card__foot">
+                {cartStats.rate === null ? 'Sin carritos resueltos aún' : 'De carrito a compra'}
+              </span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-card__label">Con compra</span>
+              <strong className="stat-card__value">{cartStats.converted}</strong>
+            </div>
+            <div className={`stat-card ${cartStats.abandoned ? 'stat-card--warn' : ''}`}>
+              <span className="stat-card__label">Abandonados</span>
+              <strong className="stat-card__value">{cartStats.abandoned}</strong>
+              <span className="stat-card__foot">Sin actividad hace +{ABANDON_HOURS} h</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-card__label">Valor no cobrado</span>
+              <strong className="stat-card__value">{formatPrice(cartStats.lostValue)}</strong>
+              <span className="stat-card__foot">
+                {cartStats.active > 0 ? `${cartStats.active} carritos aún activos` : 'En carritos abandonados'}
+              </span>
+            </div>
+          </div>
+
+          {cartStats.topAbandoned.length > 0 && (
+            <>
+              <h3 className="stat-subtitle">Más abandonados</h3>
+              <p className="admin-page__meta">
+                Si un producto entra seguido al carrito y no se compra, suele ser precio o costo de envío, no falta de
+                interés.
+              </p>
+              <ul className="stat-bars">
+                {cartStats.topAbandoned.map((p) => (
+                  <Bar
+                    key={p.name}
+                    label={p.name}
+                    value={p.qty}
+                    max={cartStats.topAbandoned[0]?.qty ?? 1}
+                    hint={`${p.qty} u`}
+                  />
+                ))}
+              </ul>
+            </>
+          )}
+        </>
+      )}
+
+      {/* ---- COMPORTAMIENTO ---- */}
+      <h2 className="stat-section">Comportamiento</h2>
+      {clarityLinks ? (
+        <div className="stat-external">
+          <p>
+            Los mapas de calor y las grabaciones de sesión viven en Microsoft Clarity: no se pueden incrustar acá, así
+            que estos enlaces te llevan directo a la vista que corresponde.
+          </p>
+          <div className="stat-external__links">
+            <a className="admin-btn admin-btn--primary" href={clarityLinks.heatmaps} target="_blank" rel="noreferrer">
+              Ver mapas de calor ↗
+            </a>
+            <a className="admin-btn admin-btn--ghost" href={clarityLinks.dashboard} target="_blank" rel="noreferrer">
+              Panel completo ↗
+            </a>
+          </div>
+          <p className="admin-page__meta">
+            Mirá sobre todo los <strong>rage clicks</strong> (clics repetidos por frustración) y los{' '}
+            <strong>dead clicks</strong> (clics en algo que no reacciona): señalan dónde se traban, que es la otra cara
+            de los carritos abandonados de arriba.
+          </p>
+        </div>
+      ) : (
+        <p className="admin-alert">
+          Sin configurar. Definiendo <code>VITE_CLARITY_ID</code> en el hosting se activan los mapas de clic y scroll y
+          las grabaciones de sesión, y acá aparecen los accesos directos.
+        </p>
       )}
 
       {/* ---- INVENTARIO ---- */}

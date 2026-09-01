@@ -16,6 +16,7 @@ import AdminProducts from './pages/admin/AdminProducts'
 import AdminProductEdit from './pages/admin/AdminProductEdit'
 import AdminCategories from './pages/admin/AdminCategories'
 import AdminStats from './pages/admin/AdminStats'
+import { initClarity } from './lib/clarity'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -28,6 +29,12 @@ function ScrollToTop() {
 export default function App() {
   const { pathname } = useLocation()
   const isAdmin = pathname.startsWith('/admin')
+
+  // Analítica sólo en la tienda. Si alguien entra directo al panel, Clarity
+  // no se carga en toda la sesión.
+  useEffect(() => {
+    if (!isAdmin) initClarity()
+  }, [isAdmin])
 
   return (
     <>
