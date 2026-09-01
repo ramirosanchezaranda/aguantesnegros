@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext'
 import { useMascotMood } from '../context/MascotMoodContext'
 import { formatPrice, installments } from '../lib/format'
 import { saveOrder } from '../lib/orders'
+import { markCartConverted } from '../lib/carts'
 import { Button } from '../components/ui'
 
 const STEPS = ['Datos', 'Envío', 'Pago', 'Confirmación']
@@ -48,6 +49,8 @@ export default function Checkout() {
     }).catch(() => {
       /* el pedido se muestra igual; sólo se pierde el registro */
     })
+    // Este carrito terminó en compra: deja de contar como abandonado.
+    void markCartConverted()
     setStep(3)
     setDone(true)
     clear()

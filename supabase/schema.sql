@@ -138,6 +138,40 @@ create policy "orders_read_admin" on public.orders
   for select to authenticated
   using (auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com');
 
+-- ---- Carritos (medición de abandono) --------------------------------------
+-- Sin datos personales: un id aleatorio del navegador, qué se puso en el
+-- carrito y cuándo. Sirve para contar abandono, no para contactar a nadie.
+create table if not exists public.carts (
+  id           text primary key,
+  updated_at   timestamptz not null default now(),
+  items        jsonb not null default '[]'::jsonb,
+  subtotal     integer not null default 0,
+  converted_at timestamptz
+);
+
+create index if not exists carts_updated_at_idx on public.carts (updated_at desc);
+
+alter table public.carts enable row level security;
+
+drop policy if exists "carts_write_public" on public.carts;
+drop policy if exists "carts_update_public" on public.carts;
+drop policy if exists "carts_read_admin"   on public.carts;
+
+-- El visitante no tiene cuenta, así que escribe de forma anónima. El id es un
+-- UUID aleatorio: no se puede adivinar el de otro.
+create policy "carts_write_public" on public.carts
+  for insert to anon, authenticated with check (true);
+
+-- Sólo se puede seguir modificando un carrito que todavía no se convirtió,
+-- para que un convertido no pueda alterarse después.
+create policy "carts_update_public" on public.carts
+  for update to anon, authenticated
+  using (converted_at is null) with check (true);
+
+create policy "carts_read_admin" on public.carts
+  for select to authenticated
+  using (auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com');
+
 -- ==========================================================================
 -- Después de correr esto:
 --   1. Authentication → Users → creá el usuario admin con el MISMO email que
