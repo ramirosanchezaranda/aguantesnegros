@@ -691,7 +691,7 @@ export const BRANDS = [
 export const FAQS: [string, string][] = [
   [
     '¿Hacen envíos a todo el país?',
-    'Sí, llegamos a todo el país con OCA y Correo Argentino, a sucursal o a domicilio. Si estás cerca, también podemos coordinar un punto de encuentro sin costo. Te mandamos el seguimiento por WhatsApp.',
+    'Sí, llegamos a todo el país con OCA y Correo Argentino, a sucursal o a domicilio. Si estás cerca, también podemos coordinar un punto de encuentro sin costo. El costo del envío no se cobra en la web: cuando terminás el pedido dejás tu dirección y te pasamos por WhatsApp las opciones que llegan a tu zona con el precio real, para que elijas la que te convenga. Después te mandamos el seguimiento por ahí mismo.',
   ],
   [
     '¿Cuáles son los métodos de pago?',
@@ -708,6 +708,10 @@ export const FAQS: [string, string][] = [
   [
     '¿Los productos son originales?',
     'Todos. Trabajamos directo con los distribuidores oficiales de cada marca. Nada de réplicas: acá se tatúa con lo posta.',
+  ],
+  [
+    '¿Qué hacen con mis datos?',
+    'Te pedimos nombre, mail, WhatsApp y dirección por una sola razón: para poder mandarte el pedido y coordinar el pago. No los vendemos ni los cedemos a nadie que no sea el correo que lleva el paquete. Datos de tarjeta no guardamos ninguno: si pagás con tarjeta, el pago ocurre en Mercado Pago. Podés pedirnos que te digamos qué tenemos tuyo, que lo corrijamos o que lo borremos, cuando quieras y sin explicar por qué. Está todo detallado en la política de privacidad, con el link acá abajo.',
   ],
   [
     '¿Tienen garantía los productos?',

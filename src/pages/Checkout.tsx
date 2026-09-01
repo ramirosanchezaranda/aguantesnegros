@@ -7,20 +7,13 @@ import { useMascotMood } from '../context/MascotMoodContext'
 import { formatPrice, installments } from '../lib/format'
 import { saveOrder } from '../lib/orders'
 import { markCartConverted } from '../lib/carts'
-import {
-  getPaymentMethod,
-  getShippingMethod,
-  PAYMENT_METHODS,
-  PROVINCES,
-  SHIPPING_METHODS,
-  whatsappLink,
-} from '../data/shop'
+import { getPaymentMethod, PAYMENT_METHODS, PROVINCES, whatsappLink } from '../data/shop'
 import { Button } from '../components/ui'
 
 const STEPS = ['Datos', 'Envío', 'Pago', 'Confirmación']
 
 export default function Checkout() {
-  const { entries, total, discount, shipping, grandTotal, coupon, clear, shippingMethod, setShippingMethod } = useCart()
+  const { entries, total, discount, shipping, grandTotal, coupon, clear } = useCart()
   const { pulse } = useMascotMood()
   const [step, setStep] = useState(0)
   const [done, setDone] = useState(false)
@@ -29,6 +22,9 @@ export default function Checkout() {
   const [customer, setCustomer] = useState({ name: '', email: '', whatsapp: '' })
   const [address, setAddress] = useState({ province: 'Buenos Aires', city: '', street: '', zip: '' })
   const [payment, setPayment] = useState(PAYMENT_METHODS[0].id)
+  // El carrito se vacía al confirmar, así que el total se congela acá: si no,
+  // la pantalla final y el mensaje de WhatsApp dirían $0.
+  const [placedTotal, setPlacedTotal] = useState(0)
   // B3: order number generated once, never re-created on re-render
   const orderNum = useRef(`AGN-${Math.floor(1000 + Math.random() * 9000)}`)
 
@@ -40,7 +36,6 @@ export default function Checkout() {
       setStep(step + 1)
       return
     }
-    const method = getShippingMethod(shippingMethod)
     // Se registra el pedido antes de vaciar el carrito, que es de donde salen
     // las líneas. Si el registro falla no se bloquea la compra: el cliente ya
     // llegó al final, y perder una estadística es preferible a frenarlo.
@@ -61,7 +56,6 @@ export default function Checkout() {
       total: grandTotal,
       coupon: coupon ?? undefined,
       customer: { ...customer },
-      shippingMethod,
       paymentMethod: payment,
       // Siempre: provincia y ciudad valen aunque el envío sea a sucursal o
       // punto de encuentro, y son lo que permite ver de dónde compran.
@@ -71,6 +65,7 @@ export default function Checkout() {
     })
     // Este carrito terminó en compra: deja de contar como abandonado.
     void markCartConverted()
+    setPlacedTotal(grandTotal)
     setStep(3)
     setDone(true)
     clear()
@@ -80,9 +75,14 @@ export default function Checkout() {
 
   if (done) {
     const chosen = getPaymentMethod(payment)
-    const shipLabel = getShippingMethod(shippingMethod)?.label ?? ''
-    // Mensaje ya escrito: la persona sólo tiene que apretar enviar.
-    const msg = `¡Hola! Acabo de hacer el pedido ${orderNum.current} por ${formatPrice(grandTotal)}. Forma de pago: ${chosen?.label}. Envío: ${shipLabel}.`
+    // El mensaje lleva la dirección completa: con eso alcanza para cotizar el
+    // envío sin tener que volver a preguntársela a la persona.
+    const msg = [
+      `¡Hola! Acabo de hacer el pedido ${orderNum.current} por ${formatPrice(placedTotal)}.`,
+      `Forma de pago: ${chosen?.label}.`,
+      `Envío a: ${address.street}, ${address.city} (CP ${address.zip}), ${address.province}.`,
+      `A nombre de ${customer.name}.`,
+    ].join(' ')
     return (
       <main className="page">
         <div className="container checkout-done">
@@ -90,8 +90,13 @@ export default function Checkout() {
           <p className="checkout-done__eyebrow">Pedido #{orderNum.current}</p>
           <h1 className="page__title">¡Gracias, crack!</h1>
           <p className="page__sub">{chosen?.next}</p>
+          <p className="checkout-done__summary">
+            <strong>{formatPrice(placedTotal)}</strong> · Envío a {address.street}, {address.city} (CP {address.zip}),{' '}
+            {address.province}
+          </p>
           <p className="checkout-done__next">
-            Escribinos por WhatsApp con el número de pedido y lo cerramos en el momento.
+            El costo del envío todavía no está incluido: te pasamos las opciones que llegan a tu zona con el precio
+            real y elegís la que te convenga. Tocá el botón y nos llega tu pedido con todos los datos ya cargados.
           </p>
           <a className="btn btn--primary" href={whatsappLink(msg)} target="_blank" rel="noreferrer">
             <span className="btn__label">Enviar el pedido por WhatsApp</span>
@@ -165,25 +170,17 @@ export default function Checkout() {
             )}
             {step === 1 && (
               <fieldset>
-                <legend>Forma de envío</legend>
-                <div className="choices">
-                  {SHIPPING_METHODS.map((m) => (
-                    <label key={m.id} className={`choice ${shippingMethod === m.id ? 'choice--on' : ''}`}>
-                      <input
-                        type="radio"
-                        name="envio"
-                        value={m.id}
-                        checked={shippingMethod === m.id}
-                        onChange={() => setShippingMethod(m.id)}
-                      />
-                      <span className="choice__body">
-                        <strong>{m.label}</strong>
-                        <small>{m.detail}</small>
-                      </span>
-                      <span className="choice__price">{m.price === 0 ? 'Gratis' : formatPrice(m.price)}</span>
-                    </label>
-                  ))}
-                </div>
+                <legend>Dirección de envío</legend>
+                <p className="checkout__note checkout__note--lead">
+                  El envío lo coordinamos por WhatsApp: apenas confirmes el pedido te pasamos las
+                  opciones que llegan a tu zona con el costo real, y elegís la que más te sirva
+                  (a domicilio, a sucursal o punto de encuentro). Por eso el total de acá abajo
+                  todavía no incluye el envío.
+                </p>
+                <p className="checkout__note">
+                  Dejanos la dirección completa igual: es lo que necesitamos para cotizar y
+                  despachar sin volver a escribirte.
+                </p>
 
                 <div className="field-row">
                   <label className="field">
@@ -202,6 +199,7 @@ export default function Checkout() {
                     <span>Ciudad*</span>
                     <input
                       required
+                      autoComplete="address-level2"
                       placeholder="La Plata"
                       value={address.city}
                       onChange={(e) => setAddress((a) => ({ ...a, city: e.target.value }))}
@@ -209,30 +207,26 @@ export default function Checkout() {
                   </label>
                 </div>
 
-                {getShippingMethod(shippingMethod)?.needsAddress && (
-                  <>
-                    <label className="field">
-                      <span>Dirección*</span>
-                      <input
-                        required
-                        autoComplete="street-address"
-                        placeholder="Calle 123 #456"
-                        value={address.street}
-                        onChange={(e) => setAddress((a) => ({ ...a, street: e.target.value }))}
-                      />
-                    </label>
-                    <label className="field">
-                      <span>Código postal*</span>
-                      <input
-                        required
-                        autoComplete="postal-code"
-                        placeholder="1900"
-                        value={address.zip}
-                        onChange={(e) => setAddress((a) => ({ ...a, zip: e.target.value }))}
-                      />
-                    </label>
-                  </>
-                )}
+                <label className="field">
+                  <span>Dirección*</span>
+                  <input
+                    required
+                    autoComplete="street-address"
+                    placeholder="Calle 123, piso 4 depto B"
+                    value={address.street}
+                    onChange={(e) => setAddress((a) => ({ ...a, street: e.target.value }))}
+                  />
+                </label>
+                <label className="field">
+                  <span>Código postal*</span>
+                  <input
+                    required
+                    autoComplete="postal-code"
+                    placeholder="1900"
+                    value={address.zip}
+                    onChange={(e) => setAddress((a) => ({ ...a, zip: e.target.value }))}
+                  />
+                </label>
               </fieldset>
             )}
             {step === 2 && (
@@ -269,6 +263,14 @@ export default function Checkout() {
                 {step === 2 ? 'Confirmar pedido' : step === 1 ? 'Continuar con pago' : 'Continuar con envío'}
               </Button>
             </div>
+
+            {/* Aviso de privacidad al pie del formulario: se lee donde se
+                cargan los datos, no escondido en el footer. */}
+            <p className="checkout__privacy">
+              * Usamos tus datos sólo para mandarte el pedido y coordinar el pago. No los vendemos ni los compartimos
+              con nadie más que el correo que lleva el paquete, y no guardamos datos de tarjeta. Podés pedirnos que los
+              borremos cuando quieras: <Link to="/privacidad">política de privacidad</Link>.
+            </p>
           </form>
 
           <aside className="summary summary--sticky">
@@ -300,7 +302,7 @@ export default function Checkout() {
               )}
               <div>
                 <dt>Envío</dt>
-                <dd>{shipping === 0 ? 'Gratis' : formatPrice(shipping)}</dd>
+                <dd className="summary__pending">A coordinar por WhatsApp</dd>
               </div>
               <div className="summary__total">
                 <dt>Total</dt>

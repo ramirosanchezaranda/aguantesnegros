@@ -33,6 +33,11 @@ export default function Faq() {
           ))}
         </div>
 
+        <p className="faq-note">
+          Todo lo que hacemos con tus datos está escrito en la{' '}
+          <Link to="/privacidad">política de privacidad</Link>.
+        </p>
+
         <div className="faq-cta">
           <p>¿No encontraste lo que buscabas?</p>
           <a className="btn btn--primary" href={whatsappLink()} target="_blank" rel="noreferrer">

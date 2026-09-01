@@ -10,12 +10,15 @@ import Product from './pages/Product'
 import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
 import Faq from './pages/Faq'
+import Privacidad from './pages/Privacidad'
 import CompraRapida from './pages/CompraRapida'
 import NotFound from './pages/NotFound'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminProducts from './pages/admin/AdminProducts'
 import AdminProductEdit from './pages/admin/AdminProductEdit'
 import AdminCategories from './pages/admin/AdminCategories'
+import AdminSales from './pages/admin/AdminSales'
+import AdminCustomers from './pages/admin/AdminCustomers'
 import AdminStats from './pages/admin/AdminStats'
 import { initClarity } from './lib/clarity'
 
@@ -52,11 +55,14 @@ export default function App() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/compra-rapida" element={<CompraRapida />} />
           <Route path="/faq" element={<Faq />} />
+          <Route path="/privacidad" element={<Privacidad />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminProducts />} />
             <Route path="productos/nuevo" element={<AdminProductEdit />} />
             <Route path="productos/:slug" element={<AdminProductEdit />} />
             <Route path="categorias" element={<AdminCategories />} />
+            <Route path="ventas" element={<AdminSales />} />
+            <Route path="clientes" element={<AdminCustomers />} />
             <Route path="estadisticas" element={<AdminStats />} />
           </Route>
           <Route path="*" element={<NotFound />} />

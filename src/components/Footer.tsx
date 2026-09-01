@@ -68,7 +68,7 @@ export default function Footer() {
           </p>
           <div className="footer__legal">
             <Link to="/faq">Términos</Link>
-            <Link to="/faq">Privacidad</Link>
+            <Link to="/privacidad">Privacidad</Link>
             <Link to="/faq">Defensa al consumidor</Link>
             <Link to="/admin">Gestión</Link>
           </div>
