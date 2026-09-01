@@ -50,3 +50,41 @@ npm run preview  # previsualizar el build
 ## Paleta
 
 Negro `#0B0B0B` · Rojo `#E53935` · Crema `#F8F3EA` · Gris `#EFEFEF` · Blanco
+
+## Backend: Supabase
+
+La app funciona con dos backends y elige solo según las variables de entorno:
+
+- **Sin variables** → modo local: el catálogo vive en `localStorage` del navegador.
+  Ideal para demos. El panel `/admin` entra con contraseña (`guantin` por defecto).
+- **Con variables** → Supabase: catálogo compartido en Postgres y login real de
+  admin con email y contraseña. El panel muestra cuál está activo.
+
+### Puesta en marcha
+
+1. En el SQL Editor de Supabase, corré `supabase/schema.sql` (tablas + RLS) y
+   después `supabase/seed.sql` (catálogo). El seed es idempotente: podés
+   volver a correrlo para resincronizar.
+2. **Authentication → Users → Add user**: creá el admin con email y contraseña,
+   marcando *Auto Confirm*. Sin confirmar, el login falla.
+3. **Authentication → Providers → Email**: desactivá *Allow new users to sign
+   up*. Las políticas dan permiso de escritura a cualquier usuario autenticado,
+   así que con el registro abierto cualquiera podría editar el catálogo.
+4. Copiá las credenciales a `.env` (local) y a las variables de entorno de tu
+   hosting:
+
+   ```
+   VITE_SUPABASE_URL=https://TU-PROYECTO.supabase.co
+   VITE_SUPABASE_ANON_KEY=TU_ANON_KEY
+   ```
+
+   Las `VITE_*` se embeben en el build: después de cambiarlas hay que
+   **volver a deployar**.
+
+La anon key es pública por diseño (viaja en el bundle). Lo que protege los
+datos es RLS: lectura para todos, escritura sólo con sesión iniciada.
+
+### Regenerar el seed
+
+`supabase/seed.sql` se genera desde `src/data/catalog.ts`. Si cambiás el
+catálogo semilla, regeneralo y volvé a correrlo en Supabase.

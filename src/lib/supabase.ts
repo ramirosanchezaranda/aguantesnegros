@@ -12,28 +12,105 @@ export function hasSupabase(): boolean {
   return Boolean(supabaseConfig.url && supabaseConfig.anonKey)
 }
 
-const TOKEN_KEY = 'agn-sb-token'
+const ACCESS_KEY = 'agn-sb-token'
+const REFRESH_KEY = 'agn-sb-refresh'
+const EXPIRES_KEY = 'agn-sb-expires'
+/** Sesión visible del admin; se limpia junto con los tokens. */
+export const SESSION_KEY = 'agn-admin-session'
 
-export function getAccessToken(): string | null {
+/** Se renueva un minuto antes del vencimiento real. */
+const REFRESH_SKEW_MS = 60_000
+
+function read(key: string): string | null {
   try {
-    return localStorage.getItem(TOKEN_KEY)
+    return localStorage.getItem(key)
   } catch {
     return null
   }
 }
 
-export function setAccessToken(token: string | null): void {
+function write(key: string, value: string | null): void {
   try {
-    if (token) localStorage.setItem(TOKEN_KEY, token)
-    else localStorage.removeItem(TOKEN_KEY)
+    if (value === null) localStorage.removeItem(key)
+    else localStorage.setItem(key, value)
   } catch {
     /* almacenamiento no disponible */
   }
 }
 
-/** Headers para PostgREST. Usa el token del admin logueado si existe. */
-export function sbHeaders(extra: Record<string, string> = {}): Record<string, string> {
-  const token = getAccessToken() ?? supabaseConfig.anonKey ?? ''
+export interface TokenResponse {
+  access_token: string
+  refresh_token?: string
+  expires_in?: number
+  user?: { email?: string }
+}
+
+/** Guarda el token de acceso junto con el de refresco y su vencimiento. */
+export function saveSession(token: TokenResponse): void {
+  write(ACCESS_KEY, token.access_token)
+  write(REFRESH_KEY, token.refresh_token ?? null)
+  write(EXPIRES_KEY, token.expires_in ? String(Date.now() + token.expires_in * 1000) : null)
+}
+
+export function clearSession(): void {
+  write(ACCESS_KEY, null)
+  write(REFRESH_KEY, null)
+  write(EXPIRES_KEY, null)
+  write(SESSION_KEY, null)
+}
+
+export function getAccessToken(): string | null {
+  return read(ACCESS_KEY)
+}
+
+let refreshing: Promise<string | null> | null = null
+
+/** Canjea el refresh token por uno nuevo. Comparte la promesa entre llamadas
+ *  simultáneas para no pedir varios refrescos a la vez. */
+function refreshAccessToken(): Promise<string | null> {
+  if (refreshing) return refreshing
+  const refreshToken = read(REFRESH_KEY)
+  if (!refreshToken) {
+    clearSession()
+    return Promise.resolve(null)
+  }
+  refreshing = (async () => {
+    try {
+      const res = await fetch(authUrl('token?grant_type=refresh_token'), {
+        method: 'POST',
+        headers: { apikey: supabaseConfig.anonKey ?? '', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      })
+      if (!res.ok) {
+        // El refresh token ya no sirve: hay que volver a iniciar sesión.
+        clearSession()
+        return null
+      }
+      const data = (await res.json()) as TokenResponse
+      saveSession(data)
+      return data.access_token
+    } catch {
+      return null
+    } finally {
+      refreshing = null
+    }
+  })()
+  return refreshing
+}
+
+/** Token de acceso válido, renovándolo si está vencido o por vencer. */
+export async function freshAccessToken(): Promise<string | null> {
+  const token = read(ACCESS_KEY)
+  if (!token) return null
+  const expiresAt = Number(read(EXPIRES_KEY) ?? 0)
+  if (expiresAt && Date.now() > expiresAt - REFRESH_SKEW_MS) return refreshAccessToken()
+  return token
+}
+
+/** Headers para PostgREST. Usa el token del admin logueado si existe (y lo
+ *  renueva si hace falta); si no, la anon key, que sólo permite leer. */
+export async function sbHeaders(extra: Record<string, string> = {}): Promise<Record<string, string>> {
+  const token = (await freshAccessToken()) ?? supabaseConfig.anonKey ?? ''
   return {
     apikey: supabaseConfig.anonKey ?? '',
     Authorization: `Bearer ${token}`,

@@ -89,7 +89,7 @@ export default function Header() {
             </button>
             <nav className="header__nav" aria-label="Principal">
               <NavLink to="/categorias">Categorías</NavLink>
-              <NavLink to="/categoria/descartables">Descartables</NavLink>
+              <NavLink to="/categoria/bioseguridad">Bioseguridad</NavLink>
               <NavLink to="/categoria/pigmentos">Pigmentos</NavLink>
               <NavLink to="/faq">FAQ</NavLink>
             </nav>
