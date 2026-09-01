@@ -70,9 +70,23 @@ create policy "products_write_admin" on public.products
   with check (auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com');
 
 -- ---- Fotos de producto ---------------------------------------------------
--- Opcional por producto: si está vacío, la tienda usa la ilustración de la
--- marca. Las imágenes viven en Storage; acá sólo guardamos su URL.
-alter table public.products add column if not exists image_url text;
+-- Hasta 3 por producto, opcionales: si el arreglo está vacío, la tienda usa la
+-- ilustración de la marca. Las imágenes viven en Storage; acá van sus URLs.
+alter table public.products add column if not exists image_urls jsonb not null default '[]'::jsonb;
+
+-- Migración desde la primera versión, que guardaba una sola foto en image_url.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'products' and column_name = 'image_url'
+  ) then
+    update public.products
+       set image_urls = jsonb_build_array(image_url)
+     where image_url is not null and image_url <> '' and image_urls = '[]'::jsonb;
+    alter table public.products drop column image_url;
+  end if;
+end $$;
 
 insert into storage.buckets (id, name, public)
 values ('product-images', 'product-images', true)

@@ -1,6 +1,7 @@
 import type { ArtKind } from '../data/catalog'
 
-// Imagen del producto. Si tiene una foto cargada desde el panel se usa ésa;
+// Imagen del producto. Si tiene fotos cargadas desde el panel se usa una de
+// ellas (`index` elige cuál, para la galería de la ficha);
 // si no, se cae a la ilustración de la marca, elegida por el tipo de artículo
 // (`art`) y, en su defecto, por la categoría — así productos distintos dentro
 // de una misma categoría (agujas y cartuchos) conservan su propia imagen.
@@ -33,11 +34,15 @@ const FALLBACK = '/products/default.png'
 export default function ProductArt({
   product,
   className,
+  index = 0,
 }: {
-  product: { art: ArtKind; category: string; imageUrl?: string }
+  product: { art: ArtKind; category: string; images?: string[] }
   className?: string
+  /** Cuál de las fotos mostrar. Si no existe, cae a la primera. */
+  index?: number
 }) {
-  const photo = product.imageUrl?.trim()
+  const gallery = product.images ?? []
+  const photo = (gallery[index] ?? gallery[0])?.trim()
   const src = photo || BY_ART[product.art] || BY_CATEGORY[product.category] || FALLBACK
   return (
     <img

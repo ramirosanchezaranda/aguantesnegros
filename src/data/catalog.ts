@@ -51,12 +51,16 @@ export interface Product {
   specs: [string, string][]
   /** Unidades disponibles. Si falta (catálogo semilla), se asume DEFAULT_STOCK. */
   stock?: number
-  /** Foto real del producto. Si falta, se usa la ilustración de la marca. */
-  imageUrl?: string
+  /** Fotos reales del producto (hasta MAX_IMAGES). Si no hay, se usa la
+   *  ilustración de la marca. */
+  images?: string[]
 }
 
 /** Stock por defecto para productos del catálogo semilla que no lo declaran. */
 export const DEFAULT_STOCK = 20
+
+/** Máximo de fotos por producto. */
+export const MAX_IMAGES = 3
 
 /** Stock efectivo de un producto, tolerando el catálogo semilla sin `stock`. */
 export function stockOf(product: Product): number {

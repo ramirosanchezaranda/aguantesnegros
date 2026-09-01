@@ -26,6 +26,10 @@ export default function Product() {
     .slice(0, 4)
   const stock = stockOf(product)
   const soldOut = stock <= 0
+  // Con fotos cargadas la galería tiene una miniatura por foto; sin ellas,
+  // las tres vistas decorativas de siempre.
+  const hasPhotos = (product.images?.length ?? 0) > 0
+  const shots = hasPhotos ? product.images!.length : 3
 
   return (
     <main className="page" key={product.slug}>
@@ -40,20 +44,26 @@ export default function Product() {
           {/* Galería */}
           <div className="pdp__gallery">
             <div className="pdp__thumbs">
-              {[0, 1, 2].map((i) => (
+              {Array.from({ length: shots }, (_, i) => (
                 <button
                   key={i}
                   className={`pdp__thumb ${shot === i ? 'pdp__thumb--on' : ''}`}
                   onClick={() => setShot(i)}
                   aria-label={`Vista ${i + 1}`}
                 >
-                  <ProductArt product={product} />
+                  <ProductArt product={product} index={i} />
                 </button>
               ))}
             </div>
             <div className="pdp__stage">
               {product.badge && <span className="pcard__badge">{product.badge}</span>}
-              <ProductArt product={product} className={`pdp__art pdp__art--${shot}`} />
+              <ProductArt
+                product={product}
+                index={shot}
+                // Sin fotos, las "vistas" son la misma ilustración rotada; con
+                // fotos reales cada una es distinta y no hay que inclinarlas.
+                className={`pdp__art ${hasPhotos ? '' : `pdp__art--${shot}`}`}
+              />
             </div>
           </div>
 

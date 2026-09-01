@@ -4,7 +4,7 @@ import { useCatalog } from '../../context/CatalogContext'
 import { getRepo } from '../../lib/catalog'
 import { ACCEPTED_IMAGE_TYPES } from '../../lib/images'
 import ProductArt from '../../components/ProductArt'
-import { DEFAULT_STOCK, type ArtKind, type Product } from '../../data/catalog'
+import { DEFAULT_STOCK, MAX_IMAGES, type ArtKind, type Product } from '../../data/catalog'
 
 const ART_KINDS: ArtKind[] = [
   'pen',
@@ -77,16 +77,23 @@ export default function AdminProductEdit() {
 
   async function onPickImage(file: File | undefined) {
     if (!file) return
+    const current = form.images ?? []
+    if (current.length >= MAX_IMAGES) return
     setError(null)
     setUploading(true)
     try {
       const url = await getRepo().uploadImage(form.slug || slugify(form.name) || 'producto', file)
-      set('imageUrl', url)
+      set('images', [...current, url])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo subir la imagen')
     } finally {
       setUploading(false)
     }
+  }
+
+  function removeImage(i: number) {
+    const rest = (form.images ?? []).filter((_, j) => j !== i)
+    set('images', rest.length ? rest : undefined)
   }
 
   function setSpec(i: number, side: 0 | 1, value: string) {
@@ -239,43 +246,54 @@ export default function AdminProductEdit() {
         </div>
 
         <div className="admin-field admin-field--wide">
-          Imagen del producto
+          Fotos del producto
           <div className="admin-image">
-            <span className="admin-image__preview">
-              <ProductArt product={form} />
-            </span>
-            <div className="admin-image__actions">
-              <input
-                id="product-image"
-                className="admin-image__input"
-                type="file"
-                accept={ACCEPTED_IMAGE_TYPES.join(',')}
-                disabled={uploading}
-                onChange={(e) => {
-                  void onPickImage(e.target.files?.[0])
-                  e.target.value = ''
-                }}
-              />
-              <label htmlFor="product-image" className="admin-btn admin-btn--white admin-image__btn">
-                {uploading ? 'Subiendo…' : form.imageUrl ? 'Cambiar imagen' : 'Subir imagen'}
-              </label>
-              {form.imageUrl && (
+            {(form.images ?? []).map((url, i) => (
+              <figure className="admin-image__slot" key={url}>
+                <img src={url} alt={`Foto ${i + 1}`} />
                 <button
                   type="button"
-                  className="admin-btn admin-btn--sm admin-btn--danger"
-                  onClick={() => set('imageUrl', undefined)}
+                  className="admin-image__remove"
+                  onClick={() => removeImage(i)}
                   disabled={uploading}
+                  aria-label={`Quitar foto ${i + 1}`}
                 >
-                  Quitar
+                  ×
                 </button>
-              )}
-              <p className="admin-image__hint">
-                {form.imageUrl
-                  ? 'Se muestra esta foto en la tienda.'
-                  : 'Sin foto se usa la ilustración de la marca. JPG, PNG o WebP.'}
-              </p>
-            </div>
+                {i === 0 && <figcaption>Principal</figcaption>}
+              </figure>
+            ))}
+
+            {!form.images?.length && (
+              <span className="admin-image__slot admin-image__slot--empty">
+                <ProductArt product={form} />
+              </span>
+            )}
+
+            {(form.images?.length ?? 0) < MAX_IMAGES && (
+              <>
+                <input
+                  id="product-image"
+                  className="admin-image__input"
+                  type="file"
+                  accept={ACCEPTED_IMAGE_TYPES.join(',')}
+                  disabled={uploading}
+                  onChange={(e) => {
+                    void onPickImage(e.target.files?.[0])
+                    e.target.value = ''
+                  }}
+                />
+                <label htmlFor="product-image" className="admin-image__add">
+                  {uploading ? 'Subiendo…' : '+ Agregar foto'}
+                </label>
+              </>
+            )}
           </div>
+          <p className="admin-image__hint">
+            {form.images?.length
+              ? `${form.images.length} de ${MAX_IMAGES} fotos. La primera es la que se ve en la grilla.`
+              : `Sin fotos se usa la ilustración de la marca. Hasta ${MAX_IMAGES}: JPG, PNG o WebP.`}
+          </p>
         </div>
 
         <label className="admin-field admin-field--wide">

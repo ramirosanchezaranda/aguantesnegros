@@ -103,9 +103,14 @@ Vercel busca en el filesystem antes de aplicar los rewrites.
 
 ### Fotos de producto
 
-Cada producto puede tener una foto propia (JPG, PNG o WebP), que se carga desde
-`/admin` al editarlo. Si no tiene, la tienda usa la ilustración de la marca
-según el tipo de artículo — o sea que es opcional producto por producto.
+Cada producto puede tener **hasta 3 fotos** propias (JPG, PNG o WebP), que se
+cargan desde `/admin` al editarlo. Si no tiene ninguna, la tienda usa la
+ilustración de la marca según el tipo de artículo — o sea que es opcional
+producto por producto.
+
+La primera foto es la que se ve en la grilla y en el carrito; la ficha muestra
+todas como galería. Sin fotos, la ficha mantiene las tres vistas decorativas de
+la ilustración.
 
 Antes de subirla, el navegador la redimensiona (lado mayor 900 px) y la
 convierte a WebP, que mantiene la transparencia de los PNG. Una foto de celular
