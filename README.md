@@ -91,3 +91,12 @@ las dos políticas de `supabase/schema.sql` y volvé a correr el script.
 
 `supabase/seed.sql` se genera desde `src/data/catalog.ts`. Si cambiás el
 catálogo semilla, regeneralo y volvé a correrlo en Supabase.
+
+### Despliegue (SPA)
+
+La app usa `BrowserRouter`, así que rutas como `/admin` o `/categoria/agujas`
+no existen como archivos en el build. `vercel.json` reescribe cualquier ruta a
+`index.html` para que React Router la resuelva del lado del cliente; sin eso,
+entrar directo a una ruta o refrescar devuelve el 404 de Vercel. Los archivos
+estáticos (`/assets`, `/products`, `/mascot`, `/favicon`) no se ven afectados:
+Vercel busca en el filesystem antes de aplicar los rewrites.
