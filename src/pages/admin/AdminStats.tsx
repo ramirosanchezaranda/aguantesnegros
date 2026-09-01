@@ -4,6 +4,7 @@ import { useCatalog } from '../../context/CatalogContext'
 import { listOrders, type Order } from '../../lib/orders'
 import { listCarts, type TrackedCart } from '../../lib/carts'
 import { stockOf } from '../../data/catalog'
+import { clarityLinks } from '../../lib/clarity'
 import { formatPrice } from '../../lib/format'
 
 const LOW_STOCK = 5
@@ -312,6 +313,35 @@ export default function AdminStats() {
             </>
           )}
         </>
+      )}
+
+      {/* ---- COMPORTAMIENTO ---- */}
+      <h2 className="stat-section">Comportamiento</h2>
+      {clarityLinks ? (
+        <div className="stat-external">
+          <p>
+            Los mapas de calor y las grabaciones de sesión viven en Microsoft Clarity: no se pueden incrustar acá, así
+            que estos enlaces te llevan directo a la vista que corresponde.
+          </p>
+          <div className="stat-external__links">
+            <a className="admin-btn admin-btn--primary" href={clarityLinks.heatmaps} target="_blank" rel="noreferrer">
+              Ver mapas de calor ↗
+            </a>
+            <a className="admin-btn admin-btn--ghost" href={clarityLinks.dashboard} target="_blank" rel="noreferrer">
+              Panel completo ↗
+            </a>
+          </div>
+          <p className="admin-page__meta">
+            Mirá sobre todo los <strong>rage clicks</strong> (clics repetidos por frustración) y los{' '}
+            <strong>dead clicks</strong> (clics en algo que no reacciona): señalan dónde se traban, que es la otra cara
+            de los carritos abandonados de arriba.
+          </p>
+        </div>
+      ) : (
+        <p className="admin-alert">
+          Sin configurar. Definiendo <code>VITE_CLARITY_ID</code> en el hosting se activan los mapas de clic y scroll y
+          las grabaciones de sesión, y acá aparecen los accesos directos.
+        </p>
       )}
 
       {/* ---- INVENTARIO ---- */}

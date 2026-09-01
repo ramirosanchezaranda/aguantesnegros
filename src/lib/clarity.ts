@@ -11,6 +11,18 @@ export function hasClarity(): boolean {
   return Boolean(CLARITY_ID)
 }
 
+/**
+ * Enlaces al panel de Clarity. Sus mapas de calor no se pueden incrustar
+ * —no hay iframe ni widget—, así que lo mejor posible es llevar directo a
+ * la vista correspondiente en vez de duplicar mal lo que ya hace bien.
+ */
+export const clarityLinks = CLARITY_ID
+  ? {
+      dashboard: `https://clarity.microsoft.com/projects/view/${CLARITY_ID}/dashboard`,
+      heatmaps: `https://clarity.microsoft.com/projects/view/${CLARITY_ID}/heatmaps`,
+    }
+  : null
+
 let loaded = false
 
 /** Inyecta el script de Clarity una sola vez. */

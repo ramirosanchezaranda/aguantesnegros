@@ -3752,3 +3752,29 @@ html[data-theme='dark'] .hero__mascot {
   white-space: nowrap;
   border: 0;
 }
+
+/* Bloque de analítica externa (Clarity) */
+.stat-external {
+  background: var(--surface);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-card);
+  padding: var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.stat-external p {
+  margin: 0;
+  font-size: 14px;
+}
+.stat-external__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.stat-external code {
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  background: var(--tint);
+  font-size: 12px;
+}
