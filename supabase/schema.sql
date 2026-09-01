@@ -45,6 +45,8 @@ drop policy if exists "categories_read_public" on public.categories;
 drop policy if exists "products_read_public"   on public.products;
 drop policy if exists "categories_write_auth"  on public.categories;
 drop policy if exists "products_write_auth"    on public.products;
+drop policy if exists "categories_write_admin" on public.categories;
+drop policy if exists "products_write_admin"   on public.products;
 
 -- Lectura pública
 create policy "categories_read_public" on public.categories
@@ -52,17 +54,29 @@ create policy "categories_read_public" on public.categories
 create policy "products_read_public" on public.products
   for select using (true);
 
--- Escritura sólo autenticados (admin logueado con Supabase Auth)
-create policy "categories_write_auth" on public.categories
-  for all to authenticated using (true) with check (true);
-create policy "products_write_auth" on public.products
-  for all to authenticated using (true) with check (true);
+-- Escritura sólo para el admin de la tienda.
+--
+-- Se valida el email del JWT, no alcanza con estar autenticado: aunque el
+-- registro público quedara abierto por error, un usuario recién creado no
+-- puede tocar el catálogo. Para cambiar de admin, editá el email de las dos
+-- políticas y volvé a correr este script.
+create policy "categories_write_admin" on public.categories
+  for all to authenticated
+  using      (auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com')
+  with check (auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com');
+create policy "products_write_admin" on public.products
+  for all to authenticated
+  using      (auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com')
+  with check (auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com');
 
 -- ==========================================================================
 -- Después de correr esto:
---   1. Authentication → Users → creá tu usuario admin (email + password).
---   2. Cargá VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY en tu .env.
+--   1. Authentication → Users → creá el usuario admin con el MISMO email que
+--      figura en las políticas de arriba, marcando "Auto Confirm User".
+--   2. Cargá VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY en tu .env y en el
+--      hosting (las VITE_* se hornean en el build: hay que redeployar).
 --   3. Corré supabase/seed.sql para cargar el catálogo.
 --   4. Authentication → Providers → Email: desactivá "Allow new users to
---      sign up". Si no, cualquiera puede registrarse y editar el catálogo.
+--      sign up". Ya no es la única defensa —las políticas validan el email—
+--      pero evita que se acumulen cuentas basura.
 -- ==========================================================================
