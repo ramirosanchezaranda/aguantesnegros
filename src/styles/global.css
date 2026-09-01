@@ -2775,6 +2775,8 @@ fieldset {
   }
   .admin__nav {
     flex-direction: row;
+    /* Tres pestañas no entran en una línea a 360 px y empujaban el panel. */
+    flex-wrap: wrap;
     margin: 0;
   }
   .admin__main {
@@ -4030,4 +4032,34 @@ html[data-theme='dark'] .hero__mascot {
   .header__actions {
     gap: 0;
   }
+}
+
+/* ==================================================================
+   ADMIN — el panel tiene que respetar el ancho de la pantalla
+   ==================================================================
+   `.admin` es una grilla y sus hijos arrancan en `min-width: auto`, así
+   que no bajan de su contenido mínimo. La línea del backend con el email
+   del admin no corta, y estiraba toda la columna: en un teléfono de
+   360 px el contenido quedaba de 401 px y todo (chips, cards, tablas)
+   aparecía corrido respecto del fondo.
+   ================================================================== */
+.admin__side,
+.admin__main {
+  min-width: 0;
+}
+/* El email del admin es una cadena larga sin espacios: tiene que poder
+   cortarse antes que empujar el layout. */
+.admin__backend {
+  overflow-wrap: anywhere;
+}
+.admin__side-foot {
+  min-width: 0;
+}
+
+/* Carrito y checkout: sus columnas también arrancan en `min-width: auto` y
+   en pantallas muy angostas (320 px) empujaban la página a lo ancho. */
+.cart__list,
+.checkout__form,
+.summary {
+  min-width: 0;
 }

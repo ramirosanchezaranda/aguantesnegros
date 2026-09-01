@@ -379,7 +379,7 @@ export default function AdminStats() {
             </div>
           </div>
 
-          <div className="admin-table-wrap">
+          <div className="admin-table-wrap admin-table-wrap--collapse">
             <table className="admin-table">
               <thead>
                 <tr>
@@ -412,6 +412,36 @@ export default function AdminStats() {
               </tbody>
             </table>
           </div>
+          {/* Vista de cards (teléfonos, tablets y ventanas angostas) */}
+          <div className="admin-cards">
+            {customers.map((c) => (
+              <article key={c.email} className="admin-card">
+                <div className="admin-card__head">
+                  <strong>{c.name || '—'}</strong>
+                  <span className="admin-card__sub">{c.email}</span>
+                  {c.whatsapp && (
+                    <a href={whatsappLink()} target="_blank" rel="noreferrer" className="stat-wa">
+                      {c.whatsapp} ↗
+                    </a>
+                  )}
+                </div>
+                <div className="admin-card__grid">
+                  <div className="admin-card__field">
+                    <span>Pedidos</span>
+                    <span className="admin-card__value">{c.orders}</span>
+                  </div>
+                  <div className="admin-card__field">
+                    <span>Total gastado</span>
+                    <span className="admin-card__value">{formatPrice(c.spent)}</span>
+                  </div>
+                </div>
+                <p className="admin-card__sub">
+                  Última compra: {new Date(c.last).toLocaleDateString('es-AR')}
+                </p>
+              </article>
+            ))}
+          </div>
+
           <p className="admin-page__meta">
             Son datos personales: tratalos con cuidado y no los uses para nada que la persona no haya esperado al
             comprar.
