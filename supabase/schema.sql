@@ -30,7 +30,11 @@ create table if not exists public.products (
   featured    boolean not null default false,
   description text not null default '',
   specs       jsonb not null default '[]'::jsonb,
-  stock       integer not null default 0
+  stock       integer not null default 0,
+  colors      jsonb not null default '[]'::jsonb,
+  cost        integer,
+  image_urls  jsonb not null default '[]'::jsonb,
+  image_url   text
 );
 
 -- Se filtra por categoría en cada página de categoría.
@@ -87,7 +91,6 @@ begin
     alter table public.products drop column image_url;
   end if;
 end $$;
-
 insert into storage.buckets (id, name, public)
 values ('product-images', 'product-images', true)
 on conflict (id) do update set public = true;
@@ -178,6 +181,9 @@ create policy "carts_update_public" on public.carts
 create policy "carts_read_admin" on public.carts
   for select to authenticated
   using (auth.jwt() ->> 'email' = 'aguantesnegros.info@gmail.com');
+
+-- Notificar cambios al PostgREST
+notify pgrst, 'reload schema';
 
 -- ==========================================================================
 -- Después de correr esto:

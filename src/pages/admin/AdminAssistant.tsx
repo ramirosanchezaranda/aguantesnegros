@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useCatalog } from '../../context/CatalogContext'
 import { getRepo } from '../../lib/catalog'
@@ -76,15 +76,10 @@ export default function AdminAssistant() {
   const { products, categories, reload } = useCatalog()
   const [input, setInput] = useState('')
   const [turns, setTurns] = useState<Turn[]>([])
-  const endRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const fallbackCategory = categories[0]?.slug ?? 'varios'
   const categorySlugs = useMemo(() => new Set(categories.map((c) => c.slug)), [categories])
-
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
-  }, [turns])
 
   function submit() {
     const text = input.trim()
@@ -454,7 +449,6 @@ export default function AdminAssistant() {
               })}
             </div>
           ))}
-          <div ref={endRef} />
         </div>
 
         <div className="chat__composer">

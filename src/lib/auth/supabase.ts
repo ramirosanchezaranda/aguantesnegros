@@ -22,6 +22,13 @@ export function createSupabaseAuth(): AuthClient {
         body: JSON.stringify({ email: email.trim(), password }),
       })
       if (!res.ok) throw new Error('Credenciales inválidas')
+      
+      // Solo aguantesnegros.info@gmail.com puede acceder al panel
+      const adminEmail = 'aguantesnegros.info@gmail.com'
+      if (email.trim().toLowerCase() !== adminEmail) {
+        throw new Error(`Solo ${adminEmail} puede acceder al panel`)
+      }
+      
       const data = (await res.json()) as TokenResponse
       saveSession(data)
       const session: AdminSession = { email: data.user?.email ?? email.trim() }
