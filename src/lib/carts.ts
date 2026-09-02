@@ -4,7 +4,7 @@
 // navegador, qué productos entraron al carrito y cuándo. No hay forma de
 // llegar desde acá a una persona; sirve para contar, no para contactar.
 
-import { hasSupabase, restUrl, sbHeaders } from './supabase'
+import { hasSupabase, restUrl, sbAdminHeaders, sbHeaders } from './supabase'
 
 export interface CartLine {
   slug: string
@@ -140,7 +140,7 @@ interface CartRow {
 /** Sólo para el panel. */
 export async function listCarts(): Promise<TrackedCart[]> {
   if (!hasSupabase()) return readLocal()
-  const res = await fetch(restUrl('carts?select=*&order=updated_at.desc'), { headers: await sbHeaders() })
+  const res = await fetch(restUrl('carts?select=*&order=updated_at.desc'), { headers: await sbAdminHeaders() })
   if (!res.ok) {
     const body = await res.text().catch(() => '')
     throw new Error(`No se pudieron leer los carritos (${res.status}): ${body || res.statusText}`)

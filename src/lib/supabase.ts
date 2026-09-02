@@ -119,6 +119,28 @@ export async function sbHeaders(extra: Record<string, string> = {}): Promise<Rec
   }
 }
 
+/**
+ * Headers para lo que SÓLO puede hacer el admin.
+ *
+ * A diferencia de `sbHeaders`, no cae a la anon key: si la sesión venció,
+ * falla acá con un mensaje claro. Con la anon key el pedido llega igual, pero
+ * las políticas de la base no dejan ver ninguna fila, así que un DELETE borra
+ * cero filas y PostgREST devuelve 204 —éxito— sin que nada se haya borrado.
+ * Fallar temprano es la única forma de que eso no pase inadvertido.
+ */
+export async function sbAdminHeaders(extra: Record<string, string> = {}): Promise<Record<string, string>> {
+  const token = await freshAccessToken()
+  if (!token) {
+    throw new Error('Tu sesión venció. Cerrá sesión y volvé a entrar para guardar los cambios.')
+  }
+  return {
+    apikey: supabaseConfig.anonKey ?? '',
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+    ...extra,
+  }
+}
+
 export function restUrl(path: string): string {
   return `${supabaseConfig.url}/rest/v1/${path}`
 }
