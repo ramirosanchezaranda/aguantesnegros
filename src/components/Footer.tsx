@@ -61,6 +61,19 @@ export default function Footer() {
         </div>
       </div>
 
+      {/* La Resolución 424/2020 pide que el botón de arrepentimiento sea de
+          acceso directo desde la página de inicio y en un lugar destacado por
+          visibilidad y tamaño. Por eso va en un bloque propio y no como un
+          link más de la fila legal. */}
+      <div className="footer__revoke">
+        <Link to="/defensa-al-consumidor#arrepentimiento" className="footer__revoke-btn">
+          Botón de arrepentimiento
+        </Link>
+        <span className="footer__revoke-text">
+          Arrepentite de una compra dentro de los 10 días, sin costo y sin trámites.
+        </span>
+      </div>
+
       <div className="footer__strip">
         <div className="container footer__strip-inner">
           <p>
@@ -69,7 +82,7 @@ export default function Footer() {
           <div className="footer__legal">
             <Link to="/faq">Términos</Link>
             <Link to="/privacidad">Privacidad</Link>
-            <Link to="/faq">Defensa al consumidor</Link>
+            <Link to="/defensa-al-consumidor">Defensa al consumidor</Link>
             <Link to="/admin">Gestión</Link>
           </div>
         </div>

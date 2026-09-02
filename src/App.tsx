@@ -11,22 +11,34 @@ import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
 import Faq from './pages/Faq'
 import Privacidad from './pages/Privacidad'
+import DefensaConsumidor from './pages/DefensaConsumidor'
 import CompraRapida from './pages/CompraRapida'
 import NotFound from './pages/NotFound'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminProducts from './pages/admin/AdminProducts'
 import AdminProductEdit from './pages/admin/AdminProductEdit'
 import AdminCategories from './pages/admin/AdminCategories'
+import AdminAssistant from './pages/admin/AdminAssistant'
 import AdminSales from './pages/admin/AdminSales'
 import AdminCustomers from './pages/admin/AdminCustomers'
 import AdminStats from './pages/admin/AdminStats'
 import { initClarity } from './lib/clarity'
 
 function ScrollToTop() {
-  const { pathname } = useLocation()
+  const { pathname, hash } = useLocation()
   useEffect(() => {
+    // Con ancla, se va a la sección. Sin esto el botón de arrepentimiento del
+    // footer llevaba al principio de la página y había que buscarlo, que es
+    // justo lo que la Resolución 424/2020 no quiere.
+    if (hash) {
+      const el = document.getElementById(hash.slice(1))
+      if (el) {
+        el.scrollIntoView({ behavior: 'instant', block: 'start' })
+        return
+      }
+    }
     window.scrollTo({ top: 0, behavior: 'instant' })
-  }, [pathname])
+  }, [pathname, hash])
   return null
 }
 
@@ -56,11 +68,13 @@ export default function App() {
           <Route path="/compra-rapida" element={<CompraRapida />} />
           <Route path="/faq" element={<Faq />} />
           <Route path="/privacidad" element={<Privacidad />} />
+          <Route path="/defensa-al-consumidor" element={<DefensaConsumidor />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminProducts />} />
             <Route path="productos/nuevo" element={<AdminProductEdit />} />
             <Route path="productos/:slug" element={<AdminProductEdit />} />
             <Route path="categorias" element={<AdminCategories />} />
+            <Route path="asistente" element={<AdminAssistant />} />
             <Route path="ventas" element={<AdminSales />} />
             <Route path="clientes" element={<AdminCustomers />} />
             <Route path="estadisticas" element={<AdminStats />} />
