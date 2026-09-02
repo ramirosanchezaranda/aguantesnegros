@@ -2,7 +2,10 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useCatalog } from '../../context/CatalogContext'
 import { getRepo } from '../../lib/catalog'
-import { DEFAULT_STOCK, type ArtKind, type Product } from '../../data/catalog'
+import { ACCEPTED_IMAGE_TYPES } from '../../lib/images'
+import { formatPrice } from '../../lib/format'
+import ProductArt from '../../components/ProductArt'
+import { DEFAULT_STOCK, MAX_COLORS, MAX_IMAGES, type ArtKind, type Product } from '../../data/catalog'
 
 const ART_KINDS: ArtKind[] = [
   'pen',
@@ -19,6 +22,9 @@ const ART_KINDS: ArtKind[] = [
   'soap',
   'stencil',
 ]
+
+/** Atajos para los colores más habituales del rubro. */
+const PRESET_COLORS = ['#0B0B0B', '#FFFFFF', '#E53935', '#1E88E5', '#43A047', '#FDD835', '#8E24AA', '#8D6E63']
 
 function slugify(text: string): string {
   return text
@@ -63,6 +69,7 @@ export default function AdminProductEdit() {
   const [slugTouched, setSlugTouched] = useState(!isNew)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
 
   function set<K extends keyof Product>(key: K, value: Product[K]) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -70,6 +77,39 @@ export default function AdminProductEdit() {
 
   function onNameChange(name: string) {
     setForm((f) => ({ ...f, name, slug: isNew && !slugTouched ? slugify(name) : f.slug }))
+  }
+
+  async function onPickImage(file: File | undefined) {
+    if (!file) return
+    const current = form.images ?? []
+    if (current.length >= MAX_IMAGES) return
+    setError(null)
+    setUploading(true)
+    try {
+      const url = await getRepo().uploadImage(form.slug || slugify(form.name) || 'producto', file)
+      set('images', [...current, url])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo subir la imagen')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  function addColor(hex: string) {
+    const current = form.colors ?? []
+    const value = hex.toUpperCase()
+    if (current.length >= MAX_COLORS || current.includes(value)) return
+    set('colors', [...current, value])
+  }
+
+  function removeColor(i: number) {
+    const rest = (form.colors ?? []).filter((_, j) => j !== i)
+    set('colors', rest.length ? rest : undefined)
+  }
+
+  function removeImage(i: number) {
+    const rest = (form.images ?? []).filter((_, j) => j !== i)
+    set('images', rest.length ? rest : undefined)
   }
 
   function setSpec(i: number, side: 0 | 1, value: string) {
@@ -96,6 +136,7 @@ export default function AdminProductEdit() {
         rating: Math.min(5, Math.max(0, form.rating)),
         reviews: Math.max(0, Math.round(form.reviews)),
         badge: form.badge?.trim() || undefined,
+        cost: form.cost ? Math.max(0, Math.round(form.cost)) : undefined,
         specs: form.specs.filter(([k, v]) => k.trim() || v.trim()),
       }
       await getRepo().saveProduct(clean)
@@ -174,6 +215,22 @@ export default function AdminProductEdit() {
           </label>
 
           <label className="admin-field">
+            Precio de costo ($)
+            <input
+              type="number"
+              min={0}
+              value={form.cost ?? ''}
+              onChange={(e) => set('cost', e.target.value === '' ? undefined : Number(e.target.value))}
+              placeholder="para calcular el margen"
+            />
+            <span className="admin-field__hint">
+              {form.cost && form.price
+                ? `Margen: ${formatPrice(form.price - form.cost)} (${Math.round(((form.price - form.cost) / form.price) * 100)}%)`
+                : 'Sin costo no se puede medir la ganancia, sólo la facturación.'}
+            </span>
+          </label>
+
+          <label className="admin-field">
             Precio tachado ($)
             <input
               type="number"
@@ -219,6 +276,104 @@ export default function AdminProductEdit() {
             <input type="checkbox" checked={!!form.featured} onChange={(e) => set('featured', e.target.checked)} />
             Destacado en la home
           </label>
+        </div>
+
+        <div className="admin-field admin-field--wide">
+          Fotos del producto
+          <div className="admin-image">
+            {(form.images ?? []).map((url, i) => (
+              <figure className="admin-image__slot" key={url}>
+                <img src={url} alt={`Foto ${i + 1}`} />
+                <button
+                  type="button"
+                  className="admin-image__remove"
+                  onClick={() => removeImage(i)}
+                  disabled={uploading}
+                  aria-label={`Quitar foto ${i + 1}`}
+                >
+                  ×
+                </button>
+                {i === 0 && <figcaption>Principal</figcaption>}
+              </figure>
+            ))}
+
+            {!form.images?.length && (
+              <span className="admin-image__slot admin-image__slot--empty">
+                <ProductArt product={form} />
+              </span>
+            )}
+
+            {(form.images?.length ?? 0) < MAX_IMAGES && (
+              <>
+                <input
+                  id="product-image"
+                  className="admin-image__input"
+                  type="file"
+                  accept={ACCEPTED_IMAGE_TYPES.join(',')}
+                  disabled={uploading}
+                  onChange={(e) => {
+                    void onPickImage(e.target.files?.[0])
+                    e.target.value = ''
+                  }}
+                />
+                <label htmlFor="product-image" className="admin-image__add">
+                  {uploading ? 'Subiendo…' : '+ Agregar foto'}
+                </label>
+              </>
+            )}
+          </div>
+          <p className="admin-image__hint">
+            {form.images?.length
+              ? `${form.images.length} de ${MAX_IMAGES} fotos. La primera es la que se ve en la grilla.`
+              : `Sin fotos se usa la ilustración de la marca. Hasta ${MAX_IMAGES}: JPG, PNG o WebP.`}
+          </p>
+        </div>
+
+        <div className="admin-field admin-field--wide">
+          Colores disponibles
+          <div className="admin-colors">
+            {(form.colors ?? []).map((hex, i) => (
+              <span className="admin-colors__chip" key={hex}>
+                <span className="admin-colors__dot" style={{ background: hex }} />
+                {hex}
+                <button
+                  type="button"
+                  onClick={() => removeColor(i)}
+                  aria-label={`Quitar color ${hex}`}
+                  className="admin-colors__remove"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+
+            {(form.colors?.length ?? 0) < MAX_COLORS && (
+              <>
+                <label className="admin-colors__pick">
+                  <input type="color" onChange={(e) => addColor(e.target.value)} aria-label="Elegir un color" />
+                  <span>+ Elegir color</span>
+                </label>
+                <span className="admin-colors__presets">
+                  {PRESET_COLORS.map((hex) => (
+                    <button
+                      key={hex}
+                      type="button"
+                      className="admin-colors__preset"
+                      style={{ background: hex }}
+                      onClick={() => addColor(hex)}
+                      aria-label={`Agregar ${hex}`}
+                      title={hex}
+                    />
+                  ))}
+                </span>
+              </>
+            )}
+          </div>
+          <p className="admin-image__hint">
+            {form.colors?.length
+              ? `${form.colors.length} de ${MAX_COLORS} colores.`
+              : `Opcional, hasta ${MAX_COLORS}. Se muestran en la ficha del producto.`}
+          </p>
         </div>
 
         <label className="admin-field admin-field--wide">

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
-import LogoMark from './mascot/LogoMark'
+import { Link } from 'react-router-dom'
+import LogoMascot from './mascot/LogoMascot'
 import { useMascotMood } from '../context/MascotMoodContext'
 import { useCart } from '../context/CartContext'
 import { useCatalog } from '../context/CatalogContext'
@@ -8,13 +8,12 @@ import { useTheme } from '../context/ThemeContext'
 import { CartIcon, MenuIcon, MoonIcon, SunIcon } from './ui'
 
 export default function Header() {
-  const { mood, pulse } = useMascotMood()
+  const { pulse } = useMascotMood()
   const { count } = useCart()
   const { categories } = useCatalog()
   const { theme, toggle } = useTheme()
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [hovering, setHovering] = useState(false)
   const drawerRef = useRef<HTMLDivElement>(null)
   const menuBtnRef = useRef<HTMLButtonElement>(null)
 
@@ -67,8 +66,6 @@ export default function Header() {
     return () => drawer.removeEventListener('keydown', trap)
   }, [menuOpen])
 
-  const logoMood = hovering && mood === 'happy' ? 'peek' : mood
-
   return (
     <>
       <div className="topbar">
@@ -90,26 +87,18 @@ export default function Header() {
               <MenuIcon open={menuOpen} />
               <span className="header__menu-label">Menú</span>
             </button>
-            <nav className="header__nav" aria-label="Principal">
-              <NavLink to="/categorias">Categorías</NavLink>
-              <NavLink to="/categoria/descartables">Descartables</NavLink>
-              <NavLink to="/categoria/pigmentos">Pigmentos</NavLink>
-              <NavLink to="/faq">FAQ</NavLink>
-            </nav>
           </div>
 
           <Link
             to="/"
             className="logo"
-            onMouseEnter={() => setHovering(true)}
-            onMouseLeave={() => setHovering(false)}
             onClick={() => {
               setMenuOpen(false)
               pulse('excited', 900)
             }}
             aria-label="A Guantes Negros — inicio"
           >
-            <LogoMark mood={logoMood} className="logo__mark" />
+            <LogoMascot className="logo__mark" />
             <span className="logo__text">
               A&nbsp;Guantes
               <br />
@@ -143,7 +132,16 @@ export default function Header() {
           className={`drawer ${menuOpen ? 'drawer--open' : ''}`}
           aria-hidden={!menuOpen}
         >
-          <nav className="drawer__nav container" aria-label="Categorías">
+          <nav className="drawer__nav container" aria-label="Navegación principal">
+            <Link
+              to="/compra-rapida"
+              className="drawer__hot"
+              onClick={() => setMenuOpen(false)}
+              style={{ transitionDelay: '40ms' }}
+            >
+              Compra rápida
+              <span className="drawer__tag">¿No sabés qué comprar? Te lo armamos</span>
+            </Link>
             <p className="drawer__eyebrow">Categorías</p>
             {categories.map((c, i) => (
               <Link key={c.slug} to={`/categoria/${c.slug}`} onClick={() => setMenuOpen(false)} style={{ transitionDelay: `${60 + i * 30}ms` }}>

@@ -1,10 +1,9 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { stockOf, type Product } from '../data/catalog'
 import { useCatalog } from './CatalogContext'
+import { trackCart } from '../lib/carts'
 import { useMascotMood } from './MascotMoodContext'
 
-export const FREE_SHIPPING_THRESHOLD = 50000
-export const SHIPPING_COST = 6990
 
 const COUPONS: Record<string, number> = {
   GUANTIN10: 0.1,
@@ -51,6 +50,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
   }, [items])
 
+  // Registro anónimo del carrito para medir abandono. Con retardo: si no,
+  // tocar "+" cinco veces escribiría cinco veces. Sólo cuenta productos y
+  // cantidades, nunca datos de la persona.
+  useEffect(() => {
+    if (items.length === 0) return
+    const timer = setTimeout(() => {
+      const lines = items
+        .map((i) => ({ product: getProduct(i.slug), qty: i.qty }))
+        .filter((e): e is { product: Product; qty: number } => Boolean(e.product))
+      if (lines.length === 0) return
+      void trackCart(
+        lines.map(({ product, qty }) => ({ slug: product.slug, name: product.name, qty })),
+        lines.reduce((sum, e) => sum + e.product.price * e.qty, 0),
+      )
+    }, 2000)
+    return () => clearTimeout(timer)
+  }, [items, getProduct])
+
   const value = useMemo<CartValue>(() => {
     const entries = items
       .map((i) => ({ product: getProduct(i.slug)!, qty: i.qty }))
@@ -60,7 +77,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const rate = coupon ? (COUPONS[coupon] ?? 0) : 0
     const discount = Math.round(total * rate)
     const afterDiscount = total - discount
-    const shipping = afterDiscount >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
+    // El envío se cotiza por WhatsApp al cerrar el pedido, así que no entra en
+    // el total: cobrar un número inventado sería peor que no mostrarlo.
+    const shipping = 0
     const grandTotal = afterDiscount + shipping
     return {
       items,

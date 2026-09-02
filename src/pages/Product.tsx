@@ -26,6 +26,10 @@ export default function Product() {
     .slice(0, 4)
   const stock = stockOf(product)
   const soldOut = stock <= 0
+  // Con fotos cargadas la galería tiene una miniatura por foto; sin ellas,
+  // las tres vistas decorativas de siempre.
+  const hasPhotos = (product.images?.length ?? 0) > 0
+  const shots = hasPhotos ? product.images!.length : 3
 
   return (
     <main className="page" key={product.slug}>
@@ -40,20 +44,26 @@ export default function Product() {
           {/* Galería */}
           <div className="pdp__gallery">
             <div className="pdp__thumbs">
-              {[0, 1, 2].map((i) => (
+              {Array.from({ length: shots }, (_, i) => (
                 <button
                   key={i}
                   className={`pdp__thumb ${shot === i ? 'pdp__thumb--on' : ''}`}
                   onClick={() => setShot(i)}
                   aria-label={`Vista ${i + 1}`}
                 >
-                  <ProductArt kind={product.art} />
+                  <ProductArt product={product} index={i} />
                 </button>
               ))}
             </div>
             <div className="pdp__stage">
               {product.badge && <span className="pcard__badge">{product.badge}</span>}
-              <ProductArt kind={product.art} className={`pdp__art pdp__art--${shot}`} />
+              <ProductArt
+                product={product}
+                index={shot}
+                // Sin fotos, las "vistas" son la misma ilustración rotada; con
+                // fotos reales cada una es distinta y no hay que inclinarlas.
+                className={`pdp__art ${hasPhotos ? '' : `pdp__art--${shot}`}`}
+              />
             </div>
           </div>
 
@@ -73,6 +83,21 @@ export default function Product() {
             <p className={`pdp__stock ${soldOut ? 'pdp__stock--out' : stock <= 5 ? 'pdp__stock--low' : ''}`}>
               {soldOut ? 'Agotado' : stock <= 5 ? `¡Últimas ${stock} unidades!` : 'En stock'}
             </p>
+
+            {product.colors?.length ? (
+              <div className="pdp__colors">
+                <span className="pdp__colors-label">
+                  {product.colors.length === 1 ? 'Color' : `${product.colors.length} colores`}
+                </span>
+                <ul>
+                  {product.colors.map((hex) => (
+                    <li key={hex} style={{ background: hex }} title={hex}>
+                      <span className="sr-only">{hex}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
 
             <ul className="pdp__perks">
               {product.specs.slice(0, 4).map(([k, v]) => (

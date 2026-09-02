@@ -21,6 +21,7 @@ const ART_KINDS: ArtKind[] = [
   'pen',
   'rotary',
   'cartridge',
+  'needle',
   'ink',
   'power',
   'grip',
@@ -115,7 +116,7 @@ export default function AdminCategories() {
       {error && <p className="admin-alert admin-alert--error">{error}</p>}
 
       <div className="admin-cats">
-        <div className="admin-table-wrap">
+        <div className="admin-table-wrap admin-table-wrap--collapse">
           <table className="admin-table">
             <thead>
               <tr>
@@ -144,6 +145,32 @@ export default function AdminCategories() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Vista de cards (teléfonos, tablets y ventanas angostas) */}
+        <div className="admin-cards">
+          {categories.map((c) => (
+            <article key={c.slug} className={`admin-card ${editingSlug === c.slug ? 'admin-row--active' : ''}`}>
+              <div className="admin-card__head">
+                <strong>{c.name}</strong>
+                <span className="admin-card__sub">{c.tagline}</span>
+              </div>
+              <div className="admin-card__grid">
+                <div className="admin-card__field">
+                  <span>Productos</span>
+                  <span className="admin-card__value">{productsByCategory(c.slug).length}</span>
+                </div>
+              </div>
+              <div className="admin-card__actions">
+                <button className="admin-btn admin-btn--sm admin-btn--white" onClick={() => edit(c)}>
+                  Editar
+                </button>
+                <button className="admin-btn admin-btn--sm admin-btn--danger" onClick={() => remove(c)} disabled={busy}>
+                  Eliminar
+                </button>
+              </div>
+            </article>
+          ))}
         </div>
 
         <form className="admin-form admin-form--panel" onSubmit={save}>

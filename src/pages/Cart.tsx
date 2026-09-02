@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import Mascot from '../components/mascot/Mascot'
-import BrandMascot from '../components/mascot/BrandMascot'
+import Guantin from '../components/mascot/Guantin'
 import ProductArt from '../components/ProductArt'
 import { useCart } from '../context/CartContext'
 import { useMascotMood } from '../context/MascotMoodContext'
@@ -9,7 +8,7 @@ import { formatPrice } from '../lib/format'
 import { Button } from '../components/ui'
 
 export default function Cart() {
-  const { entries, total, discount, shipping, grandTotal, coupon, applyCoupon, removeCoupon, setQty, remove } = useCart()
+  const { entries, total, discount, grandTotal, coupon, applyCoupon, removeCoupon, setQty, remove } = useCart()
   const { setBaseMood } = useMascotMood()
   const [code, setCode] = useState('')
   const [error, setError] = useState(false)
@@ -31,7 +30,7 @@ export default function Cart() {
     return (
       <main className="page">
         <div className="container cart-empty">
-          <BrandMascot variant="question" className="cart-empty__mascot" title="Guantín con el carrito vacío" />
+          <Guantin face="sad" className="cart-empty__mascot" title="Guantín con el carrito vacío" />
           <h1 className="page__title">Tu carrito está vacío</h1>
           <p className="page__sub">Y Guantín está triste. Dale una alegría: hay cartuchos, tintas y agujas esperándote.</p>
           <Button to="/categorias" arrow>
@@ -53,7 +52,7 @@ export default function Cart() {
             <h1 className="page__title">Tu carrito</h1>
             <p className="page__sub">Revisá los productos que seleccionaste.</p>
           </div>
-          <Mascot variant="cart" className="page__mascot page__mascot--cart" title="Guantín empujando el carrito" />
+          <Guantin face="happy" className="page__mascot page__mascot--cart" title="Guantín con tu carrito" />
         </header>
 
         <div className="cart">
@@ -69,7 +68,7 @@ export default function Cart() {
               <div className="cart__row" key={product.slug}>
                 <div className="cart__product">
                   <Link to={`/producto/${product.slug}`} className="cart__thumb">
-                    <ProductArt kind={product.art} />
+                    <ProductArt product={product} />
                   </Link>
                   <div>
                     <p className="cart__brand">{product.brand}</p>
@@ -145,7 +144,7 @@ export default function Cart() {
               )}
               <div>
                 <dt>Envío</dt>
-                <dd>{shipping === 0 ? 'Gratis' : formatPrice(shipping)}</dd>
+                <dd className="summary__pending">A coordinar por WhatsApp</dd>
               </div>
               <div className="summary__total">
                 <dt>Total</dt>

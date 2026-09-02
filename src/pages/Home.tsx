@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import Mascot from '../components/mascot/Mascot'
 import BrandMascot from '../components/mascot/BrandMascot'
 import ProductCard from '../components/ProductCard'
 import { BRANDS, FAQS } from '../data/catalog'
@@ -70,15 +69,11 @@ export default function Home() {
           </h1>
           <p className="hero__sub intro intro--sub">Insumos para tatuar. Todo lo que necesitás, en un solo lugar.</p>
           <div className="hero__ctas intro intro--ctas">
-            <Button to="/categorias" arrow>
-              Ver productos
+            <Button to="/compra-rapida" arrow onMouseEnter={() => pulse('excited', 700)}>
+              No sé qué comprar
             </Button>
-            <Button
-              to="/producto/cartuchos-black-sheep-1205rl-x20"
-              variant="ghost"
-              onMouseEnter={() => pulse('excited', 700)}
-            >
-              Comprar ahora
+            <Button to="/categorias" variant="ghost">
+              Ver productos
             </Button>
           </div>
         </div>
@@ -179,7 +174,7 @@ export default function Home() {
             </Button>
           </Reveal>
           <div className="banner__figure">
-            <Mascot variant="rock" className="banner__mascot" title="Guantín haciendo cuernitos" />
+            <img src="/mascot/logo-happy.png" className="banner__mascot" alt="Guantín" draggable={false} />
           </div>
         </div>
       </section>
