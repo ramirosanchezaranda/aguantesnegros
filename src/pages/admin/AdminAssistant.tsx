@@ -82,9 +82,10 @@ export default function AdminAssistant() {
   const fallbackCategory = categories[0]?.slug ?? 'varios'
   const categorySlugs = useMemo(() => new Set(categories.map((c) => c.slug)), [categories])
 
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
-  }, [turns])
+  // Auto-scroll desactivado: se queda en la card actual cuando se selecciona/guarda
+  // useEffect(() => {
+  //   endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  // }, [turns])
 
   function submit() {
     const text = input.trim()
