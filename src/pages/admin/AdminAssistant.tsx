@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useCatalog } from '../../context/CatalogContext'
 import { getRepo } from '../../lib/catalog'
@@ -44,6 +44,8 @@ interface Draft {
   message?: string
   /** Slug con el que quedó guardado, para poder enlazarlo. */
   savedSlug?: string
+  /** Si debe guardarse automáticamente sin confirmación del usuario */
+  autoSave?: boolean
 }
 
 interface DuplicateConfirmation {
@@ -96,6 +98,21 @@ export default function AdminAssistant() {
   const fallbackCategory = categories[0]?.slug ?? 'varios'
   const categorySlugs = useMemo(() => new Set(categories.map((c) => c.slug)), [categories])
 
+  // Auto-guardar drafts marcados con autoSave
+  useEffect(() => {
+    const autoSaveDrafts = turns.flatMap((turn) =>
+      turn.drafts
+        .filter((draft) => draft.autoSave && draft.status === 'pending')
+        .map((draft) => ({ turn, draft }))
+    )
+
+    if (autoSaveDrafts.length > 0) {
+      const { turn, draft } = autoSaveDrafts[0]
+      // Limpiar el flag y guardar
+      performSave(turn, { ...draft, autoSave: false })
+    }
+  }, [turns])
+
   function submit() {
     const text = input.trim()
     if (!text) return
@@ -133,6 +150,9 @@ export default function AdminAssistant() {
         category = suggestion?.slug ?? fallbackCategory
       }
       
+      // Auto-guardar productos nuevos que tienen precio
+      const autoSave = !target && p.price !== undefined
+      
       return {
         id: `${Date.now()}-${i}`,
         parsed: p,
@@ -143,6 +163,7 @@ export default function AdminAssistant() {
         stock: num(p.stock),
         category,
         status: 'pending',
+        autoSave,
       }
     })
 
@@ -439,10 +460,19 @@ export default function AdminAssistant() {
                     </header>
 
                     {done ? (
-                      <p className="draft__done">
-                        {draft.message}{' '}
-                        {draft.savedSlug && <Link to={`/admin/productos/${draft.savedSlug}`}>Abrir la ficha</Link>}
-                      </p>
+                      <div className="draft__done-container">
+                        <p className="draft__done">{draft.message}</p>
+                        {draft.savedSlug && (
+                          <div className="draft__done-actions">
+                            <Link to={`/admin/productos/${draft.savedSlug}`} className="admin-btn admin-btn--primary">
+                              ✏️ Editar
+                            </Link>
+                            <Link to={`/admin/productos/${draft.savedSlug}`} className="admin-btn admin-btn--ghost">
+                              📄 Abrir ficha
+                            </Link>
+                          </div>
+                        )}
+                      </div>
                     ) : (
                       <>
                         {draft.parsed.warnings.map((w) => (
