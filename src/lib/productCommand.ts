@@ -214,13 +214,10 @@ export function parseLine(raw: string): ParsedLine | null {
 
   // ---- Categoría inferida ------------------------------------------------
   if (!out.category) {
-    const folded = fold(out.name).text
-    for (const [re, slug] of CATEGORY_HINTS) {
-      if (re.test(folded)) {
-        out.category = slug
-        out.categoryGuessed = true
-        break
-      }
+    const guessed = guessCategory(out.name)
+    if (guessed) {
+      out.category = guessed
+      out.categoryGuessed = true
     }
   }
 
@@ -242,6 +239,16 @@ export function parseLine(raw: string): ParsedLine | null {
     out.stock = 0
   }
   return out
+}
+
+/** Categoría deducida del nombre, o `null` si ninguna pista alcanza. Es una
+ *  ayuda, no una decisión: quien la use tiene que dejar cambiarla. */
+export function guessCategory(name: string): string | null {
+  const folded = fold(name).text
+  for (const [re, slug] of CATEGORY_HINTS) {
+    if (re.test(folded)) return slug
+  }
+  return null
 }
 
 /** Cada línea no vacía es un producto. Permite pegar una lista entera. */

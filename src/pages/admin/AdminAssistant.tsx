@@ -11,6 +11,11 @@ import {
   uniqueSlug,
   type ParsedLine,
 } from '../../lib/productCommand'
+import { importText } from '../../lib/productImport'
+import { looksEmpty, pdfToText } from '../../lib/pdfText'
+
+/** Lo que sabemos leer de un archivo. */
+const ACCEPT = '.csv,.tsv,.txt,.pdf,text/csv,text/plain,application/pdf'
 
 /** Ilustración por defecto de un producto nuevo, según su categoría. */
 const ART_BY_CATEGORY: Record<string, ArtKind> = {
@@ -49,6 +54,10 @@ interface Turn {
   drafts: Draft[]
   /** Líneas escritas que no dejaron nada aprovechable. */
   ignored: string[]
+  /** Cómo se leyó el archivo, cuando vino de uno. */
+  how?: string
+  /** Avisos del archivo (una columna que falta, por ejemplo). */
+  notes?: string[]
 }
 
 const num = (v: number | undefined) => (v === undefined ? '' : String(v))
@@ -76,10 +85,85 @@ export default function AdminAssistant() {
   const { products, categories, reload } = useCatalog()
   const [input, setInput] = useState('')
   const [turns, setTurns] = useState<Turn[]>([])
+  const [reading, setReading] = useState<string | null>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const fallbackCategory = categories[0]?.slug ?? 'varios'
   const categorySlugs = useMemo(() => new Set(categories.map((c) => c.slug)), [categories])
+
+  /** De líneas interpretadas a fichas editables. Lo comparten el chat y los
+   *  archivos: un CSV y una frase escrita terminan en la misma tarjeta. */
+  function makeDrafts(lines: ParsedLine[]): Draft[] {
+    return lines.map((p, i) => {
+      const candidates = findCandidates(p.name, products)
+      const best = candidates[0]
+      // Sólo se preselecciona el producto existente cuando el parecido es
+      // alto. Con dudas arranca en "crear nuevo": inventar un producto de más
+      // se arregla borrándolo, pisar el equivocado se arregla mucho peor.
+      const target = best && best.score >= STRONG_SIMILARITY ? best.product.slug : ''
+      const existing = target ? products.find((x) => x.slug === target) : undefined
+      const category =
+        p.category && categorySlugs.has(p.category)
+          ? p.category
+          : existing?.category ?? fallbackCategory
+      return {
+        id: `${Date.now()}-${i}-${Math.random().toString(36).slice(2, 7)}`,
+        parsed: p,
+        target,
+        name: nameFor(target, p.name, products),
+        cost: num(p.cost),
+        price: num(p.price),
+        stock: num(p.stock),
+        category,
+        status: 'pending' as const,
+      }
+    })
+  }
+
+  /** Lee un archivo y arma las fichas. */
+  async function onFile(file: File | undefined) {
+    if (!file) return
+    setReading(file.name)
+    try {
+      const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name)
+      const text = isPdf ? await pdfToText(file) : await file.text()
+      if (isPdf && looksEmpty(text)) {
+        throw new Error(
+          'Ese PDF no tiene texto: son imágenes escaneadas. Sin un lector de OCR no hay nada que extraer. Probá con el CSV o el Excel original, o pasame los datos escritos.',
+        )
+      }
+      const result = importText(text)
+      setTurns((t) => [
+        ...t,
+        {
+          id: String(Date.now()),
+          input: `📄 ${file.name}`,
+          drafts: makeDrafts(result.lines),
+          ignored: result.skipped.slice(0, 6),
+          how: result.how,
+          notes: [
+            ...result.warnings,
+            ...(result.skipped.length > 6 ? [`Y ${result.skipped.length - 6} renglones más que salté.`] : []),
+          ],
+        },
+      ])
+    } catch (e) {
+      setTurns((t) => [
+        ...t,
+        {
+          id: String(Date.now()),
+          input: `📄 ${file.name}`,
+          drafts: [],
+          ignored: [],
+          notes: [e instanceof Error ? e.message : 'No pude leer el archivo.'],
+        },
+      ])
+    } finally {
+      setReading(null)
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
 
   function submit() {
     const text = input.trim()
@@ -100,32 +184,10 @@ export default function AdminAssistant() {
     const written = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
     const ignored = written.filter((l) => !usable.some((p) => p.raw === l))
 
-    const drafts: Draft[] = usable.map((p, i) => {
-      const candidates = findCandidates(p.name, products)
-      const best = candidates[0]
-      // Sólo se preselecciona el producto existente cuando el parecido es
-      // alto. Con dudas arranca en "crear nuevo": inventar un producto de más
-      // se arregla borrándolo, pisar el equivocado se arregla mucho peor.
-      const target = best && best.score >= STRONG_SIMILARITY ? best.product.slug : ''
-      const existing = target ? products.find((x) => x.slug === target) : undefined
-      const category =
-        p.category && categorySlugs.has(p.category)
-          ? p.category
-          : existing?.category ?? fallbackCategory
-      return {
-        id: `${Date.now()}-${i}`,
-        parsed: p,
-        target,
-        name: nameFor(target, p.name, products),
-        cost: num(p.cost),
-        price: num(p.price),
-        stock: num(p.stock),
-        category,
-        status: 'pending',
-      }
-    })
-
-    setTurns((t) => [...t, { id: String(Date.now()), input: text, drafts, ignored }])
+    setTurns((t) => [
+      ...t,
+      { id: String(Date.now()), input: text, drafts: makeDrafts(usable), ignored },
+    ])
     setInput('')
     inputRef.current?.focus()
   }
@@ -252,9 +314,11 @@ export default function AdminAssistant() {
             <div className="chat__empty">
               <p className="chat__empty-title">Escribí un producto y lo cargo.</p>
               <p className="chat__empty-text">
-                Entiendo el nombre, el <strong>costo de proveedor</strong>, el <strong>precio de venta</strong> y el{' '}
-                <strong>stock</strong>, escritos como los dirías. Si ya existe algo parecido, te lo muestro para
-                actualizarlo en vez de duplicarlo. Podés pegar <strong>varias líneas de una</strong>: una por producto.
+                Entiendo el nombre, el <strong>costo de proveedor</strong>, el <strong>precio de venta</strong>, las{' '}
+                <strong>unidades</strong> y la <strong>categoría</strong>, escritos como los dirías. Si ya existe algo
+                parecido, te lo muestro para actualizarlo en vez de duplicarlo. Podés pegar{' '}
+                <strong>varias líneas de una</strong>, o <strong>adjuntar la lista del proveedor</strong> en CSV o PDF y
+                la leo entera.
               </p>
               <p className="chat__empty-label">Probá con:</p>
               <div className="chat__examples">
@@ -273,6 +337,21 @@ export default function AdminAssistant() {
           {turns.map((turn) => (
             <div className="chat__turn" key={turn.id}>
               <p className="chat__said">{turn.input}</p>
+
+              {turn.how && <p className="chat__note chat__note--how">{turn.how}</p>}
+
+              {turn.notes?.map((n) => (
+                <p className="chat__note chat__note--warn" key={n}>
+                  {n}
+                </p>
+              ))}
+
+              {turn.drafts.length > 1 && (
+                <p className="chat__note">
+                  {turn.drafts.length} productos para revisar. Se confirman de a uno: mirá los precios antes de
+                  guardar.
+                </p>
+              )}
 
               {turn.ignored.length > 0 && (
                 <p className="chat__note chat__note--warn">
@@ -452,6 +531,22 @@ export default function AdminAssistant() {
         </div>
 
         <div className="chat__composer">
+          <input
+            ref={fileRef}
+            type="file"
+            accept={ACCEPT}
+            className="chat__file-input"
+            onChange={(e) => void onFile(e.target.files?.[0])}
+            aria-label="Adjuntar una lista en CSV o PDF"
+          />
+          <button
+            type="button"
+            className="admin-btn admin-btn--ghost chat__attach"
+            onClick={() => fileRef.current?.click()}
+            disabled={reading !== null}
+          >
+            {reading ? `Leyendo ${reading}…` : '📎 Adjuntar lista'}
+          </button>
           <textarea
             ref={inputRef}
             className="chat__input"
@@ -474,7 +569,7 @@ export default function AdminAssistant() {
           </button>
         </div>
         <p className="chat__legend">
-          Enter envía · Shift + Enter agrega una línea para cargar varios productos de una
+          Enter envía · Shift + Enter agrega una línea · también podés adjuntar una lista en CSV o PDF
         </p>
       </div>
     </div>
