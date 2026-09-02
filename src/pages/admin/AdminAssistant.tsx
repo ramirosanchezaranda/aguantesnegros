@@ -11,6 +11,9 @@ import {
   uniqueSlug,
   type ParsedLine,
 } from '../../lib/productCommand'
+import { suggestCategory } from '../../lib/admin/categoryMatcher'
+import { findDuplicate } from '../../lib/admin/duplicateDetector'
+import { parseCSV, parsePDF, parseExcel, type ParsedProduct } from '../../lib/admin/fileParser'
 
 /** Ilustración por defecto de un producto nuevo, según su categoría. */
 const ART_BY_CATEGORY: Record<string, ArtKind> = {
@@ -41,6 +44,15 @@ interface Draft {
   message?: string
   /** Slug con el que quedó guardado, para poder enlazarlo. */
   savedSlug?: string
+}
+
+interface DuplicateConfirmation {
+  draftId: string
+  turnId: string
+  similarProduct: Product
+  similarity: number
+  onConfirm: () => void
+  onCancel: () => void
 }
 
 interface Turn {
@@ -76,7 +88,10 @@ export default function AdminAssistant() {
   const { products, categories, reload } = useCatalog()
   const [input, setInput] = useState('')
   const [turns, setTurns] = useState<Turn[]>([])
+  const [duplicateModal, setDuplicateModal] = useState<DuplicateConfirmation | null>(null)
+  const [isLoadingFile, setIsLoadingFile] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const fallbackCategory = categories[0]?.slug ?? 'varios'
   const categorySlugs = useMemo(() => new Set(categories.map((c) => c.slug)), [categories])
@@ -103,15 +118,21 @@ export default function AdminAssistant() {
     const drafts: Draft[] = usable.map((p, i) => {
       const candidates = findCandidates(p.name, products)
       const best = candidates[0]
-      // Sólo se preselecciona el producto existente cuando el parecido es
-      // alto. Con dudas arranca en "crear nuevo": inventar un producto de más
-      // se arregla borrándolo, pisar el equivocado se arregla mucho peor.
       const target = best && best.score >= STRONG_SIMILARITY ? best.product.slug : ''
       const existing = target ? products.find((x) => x.slug === target) : undefined
-      const category =
-        p.category && categorySlugs.has(p.category)
-          ? p.category
-          : existing?.category ?? fallbackCategory
+      
+      // Fuzzy matching de categoría
+      let category = fallbackCategory
+      if (p.category && categorySlugs.has(p.category)) {
+        category = p.category
+      } else if (existing?.category) {
+        category = existing.category
+      } else {
+        // Intenta adivinar la categoría por el nombre del producto
+        const suggestion = suggestCategory(p.name, categories)
+        category = suggestion?.slug ?? fallbackCategory
+      }
+      
       return {
         id: `${Date.now()}-${i}`,
         parsed: p,
@@ -130,6 +151,49 @@ export default function AdminAssistant() {
     inputRef.current?.focus()
   }
 
+  async function handleFileUpload(file: File) {
+    setIsLoadingFile(true)
+    try {
+      let parsedProducts: ParsedProduct[] = []
+      
+      if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+        parsedProducts = await parseCSV(file)
+      } else if (file.type === 'application/pdf') {
+        parsedProducts = await parsePDF(file)
+      } else if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.name.endsWith('.xlsx')) {
+        parsedProducts = await parseExcel(file)
+      } else {
+        alert('Formato no soportado. Usá PDF, CSV o Excel.')
+        return
+      }
+
+      if (parsedProducts.length === 0) {
+        alert('No se encontraron productos en el archivo.')
+        return
+      }
+
+      // Convertir ParsedProduct a líneas de texto para reutilizar la lógica existente
+      const lines = parsedProducts
+        .map((p) => {
+          const parts = [p.name]
+          if (p.price) parts.push(`precio ${p.price}`)
+          if (p.cost) parts.push(`proveedor ${p.cost}`)
+          if (p.stock) parts.push(`stock ${p.stock}`)
+          return parts.join(' ')
+        })
+        .join('\n')
+
+      setInput(lines)
+      inputRef.current?.focus()
+      alert(`Se cargaron ${parsedProducts.length} productos. Revisalos y envía.`)
+    } catch (e) {
+      alert(`Error al procesar archivo: ${e instanceof Error ? e.message : 'Error desconocido'}`)
+    } finally {
+      setIsLoadingFile(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
   function patch(turnId: string, draftId: string, next: Partial<Draft>) {
     setTurns((ts) =>
       ts.map((t) =>
@@ -144,6 +208,32 @@ export default function AdminAssistant() {
     const name = draft.name.trim()
     if (!name) return patch(turn.id, draft.id, { status: 'error', message: 'Falta el nombre.' })
 
+    // Detectar duplicados si es un producto nuevo
+    if (!draft.target) {
+      const duplicate = findDuplicate(name, products)
+      if (duplicate && duplicate.similarity > 70) {
+        setDuplicateModal({
+          draftId: draft.id,
+          turnId: turn.id,
+          similarProduct: duplicate.product,
+          similarity: duplicate.similarity,
+          onConfirm: () => {
+            setDuplicateModal(null)
+            performSave(turn, draft)
+          },
+          onCancel: () => {
+            setDuplicateModal(null)
+          },
+        })
+        return
+      }
+    }
+
+    performSave(turn, draft)
+  }
+
+  async function performSave(turn: Turn, draft: Draft) {
+    const name = draft.name.trim()
     const toNum = (v: string) => (v.trim() === '' ? undefined : Math.max(0, Number(v)))
     const cost = toNum(draft.cost)
     const price = toNum(draft.price)
@@ -236,6 +326,54 @@ export default function AdminAssistant() {
     }
     return rows
   }
+
+  const modalStyles = {
+    overlay: {
+      position: 'fixed' as const,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+    },
+    modal: {
+      backgroundColor: 'white',
+      borderRadius: '8px',
+      padding: '2rem',
+      maxWidth: '500px',
+      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
+    },
+    title: {
+      margin: '0 0 1rem 0',
+      fontSize: '1.25rem',
+      fontWeight: 'bold',
+    },
+    description: {
+      margin: '0 0 0.5rem 0',
+      color: '#666',
+    },
+    question: {
+      margin: '1rem 0 1.5rem 0',
+      fontWeight: '500',
+      color: '#333',
+    },
+    actions: {
+      display: 'flex',
+      gap: '1rem',
+    },
+    confirmBtn: {
+      flex: 1,
+    },
+    cancelBtn: {
+      flex: 1,
+    },
+  }
+
+
 
   return (
     <div className="admin-page">
@@ -452,6 +590,25 @@ export default function AdminAssistant() {
         </div>
 
         <div className="chat__composer">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.csv,.xlsx,.xls"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) handleFileUpload(file)
+            }}
+            style={{ display: 'none' }}
+            aria-label="Subir archivo CSV, PDF o Excel"
+          />
+          <button
+            className="admin-btn admin-btn--ghost"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isLoadingFile}
+            title="Cargar productos desde PDF, CSV o Excel"
+          >
+            {isLoadingFile ? 'Procesando…' : '📁 Archivo'}
+          </button>
           <textarea
             ref={inputRef}
             className="chat__input"
@@ -474,8 +631,37 @@ export default function AdminAssistant() {
           </button>
         </div>
         <p className="chat__legend">
-          Enter envía · Shift + Enter agrega una línea para cargar varios productos de una
+          Enter envía · Shift + Enter agrega una línea para cargar varios productos de una · 📁 Archivo para cargar CSV, PDF o Excel
         </p>
+
+        {/* Modal de detección de duplicados */}
+        {duplicateModal && (
+          <div style={modalStyles.overlay}>
+            <div style={modalStyles.modal}>
+              <h2 style={modalStyles.title}>⚠️ Producto similar detectado</h2>
+              <p style={modalStyles.description}>
+                El producto "{duplicateModal.similarProduct.name}" ya existe y es {duplicateModal.similarity}% parecido.
+              </p>
+              <p style={modalStyles.question}>¿Querés crear uno nuevo de todas formas o editar el existente?</p>
+              <div style={modalStyles.actions}>
+                <button
+                  className="admin-btn admin-btn--primary"
+                  onClick={duplicateModal.onConfirm}
+                  style={modalStyles.confirmBtn}
+                >
+                  Crear de todas formas
+                </button>
+                <button
+                  className="admin-btn admin-btn--ghost"
+                  onClick={duplicateModal.onCancel}
+                  style={modalStyles.cancelBtn}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
