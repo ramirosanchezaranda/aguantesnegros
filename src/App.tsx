@@ -18,6 +18,7 @@ import AdminLayout from './pages/admin/AdminLayout'
 import AdminProducts from './pages/admin/AdminProducts'
 import AdminProductEdit from './pages/admin/AdminProductEdit'
 import AdminCategories from './pages/admin/AdminCategories'
+import AdminAssistant from './pages/admin/AdminAssistant'
 import AdminSales from './pages/admin/AdminSales'
 import AdminCustomers from './pages/admin/AdminCustomers'
 import AdminStats from './pages/admin/AdminStats'
@@ -73,6 +74,7 @@ export default function App() {
             <Route path="productos/nuevo" element={<AdminProductEdit />} />
             <Route path="productos/:slug" element={<AdminProductEdit />} />
             <Route path="categorias" element={<AdminCategories />} />
+            <Route path="asistente" element={<AdminAssistant />} />
             <Route path="ventas" element={<AdminSales />} />
             <Route path="clientes" element={<AdminCustomers />} />
             <Route path="estadisticas" element={<AdminStats />} />

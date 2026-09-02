@@ -4466,3 +4466,303 @@ html[data-theme='dark'] .hero__mascot {
   opacity: 0.75;
   max-width: 40ch;
 }
+
+/* ==================================================================
+   ADMIN — carga de productos por chat
+   ================================================================== */
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  /* min-height 0: sin esto el log no puede achicarse y el compositor se va
+     abajo de todo en lugar de quedar a la vista. */
+  min-height: 0;
+}
+.chat__log {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+.chat__empty {
+  padding: var(--s-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+}
+.chat__empty-title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+}
+.chat__empty-text {
+  margin: 0 0 var(--s-3);
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 62ch;
+}
+.chat__empty-label {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-strong);
+}
+.chat__examples {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.chat__example {
+  max-width: 100%;
+  padding: 8px 14px;
+  border: 1px dashed var(--line);
+  border-radius: 99px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.chat__example:hover {
+  border-style: solid;
+  border-color: var(--text);
+}
+.chat__empty-foot {
+  margin: var(--s-3) 0 0;
+  font-size: 12px;
+  color: var(--muted-strong);
+}
+
+.chat__turn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-width: 0;
+}
+/* Lo que escribió la persona, alineado a la derecha como en un chat. */
+.chat__said {
+  align-self: flex-end;
+  max-width: min(100%, 46ch);
+  margin: 0;
+  padding: 10px 16px;
+  border-radius: var(--r-md) var(--r-md) 4px var(--r-md);
+  background: var(--text);
+  color: var(--bg);
+  font-size: 14px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.chat__note {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--r-md);
+  background: var(--tint);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.chat__note--warn {
+  background: var(--warn-bg);
+}
+.chat__note--error {
+  background: var(--danger-bg);
+}
+
+/* La tarjeta de propuesta: fondo claro propio, como las demás del admin. */
+.draft {
+  --card-ink: #0b0b0b;
+  --card-muted: rgba(11, 11, 11, 0.58);
+  --card-line: rgba(11, 11, 11, 0.14);
+  background: #fff;
+  color: var(--card-ink);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-card);
+  padding: var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.draft--done {
+  box-shadow: none;
+  border: 1px solid var(--card-line);
+}
+.draft__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.draft__tag {
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.draft__tag--new {
+  background: #0b0b0b;
+  color: #fff;
+}
+.draft__tag--edit {
+  background: #fde8e7;
+  color: #8f1b18;
+}
+.draft__name {
+  font-size: 16px;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.draft__done {
+  margin: 0;
+  font-size: 14px;
+  color: var(--card-muted);
+}
+.draft__done a {
+  color: #b3231f;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.draft__grid {
+  display: grid;
+  gap: var(--s-2);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+}
+.draft__field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.draft__field > span {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--card-muted);
+}
+.draft__field input,
+.draft__field select {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  font-size: 16px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--card-line);
+  border-radius: var(--r-sm);
+  background: #fff;
+  color: var(--card-ink);
+}
+.draft__field input:focus,
+.draft__field select:focus {
+  outline: none;
+  border-color: var(--card-ink);
+}
+.draft__hint {
+  font-size: 11px;
+  color: var(--card-muted);
+}
+
+.draft__diff {
+  padding: var(--s-2);
+  border: 1px solid var(--card-line);
+  border-radius: var(--r-sm);
+}
+.draft__diff-title {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--card-muted);
+}
+.draft__diff ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.draft__diff li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+}
+.draft__diff li > span:first-child {
+  min-width: 8.5em;
+  color: var(--card-muted);
+}
+.draft__from {
+  text-decoration: line-through;
+  color: var(--card-muted);
+}
+.draft__diff-empty,
+.draft__diff-foot {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--card-muted);
+}
+.draft__diff-empty {
+  margin: 0;
+}
+
+.draft__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chat__composer {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  position: sticky;
+  bottom: 0;
+  padding-top: var(--s-2);
+  background: linear-gradient(to top, var(--bg) 72%, transparent);
+}
+.chat__input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.45;
+  padding: 12px 16px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--text);
+  resize: vertical;
+}
+.chat__input:focus {
+  outline: none;
+  border-color: var(--text);
+}
+.chat__send {
+  flex-shrink: 0;
+}
+.chat__legend {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted-strong);
+}
+
+@media (max-width: 480px) {
+  .chat__composer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .draft__diff li > span:first-child {
+    min-width: 100%;
+  }
+}

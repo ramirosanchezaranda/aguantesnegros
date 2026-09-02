@@ -26,6 +26,7 @@ export default function AdminLayout() {
             Productos
           </NavLink>
           <NavLink to="/admin/categorias">Categorías</NavLink>
+          <NavLink to="/admin/asistente">Productos por IA</NavLink>
           <NavLink to="/admin/ventas">Ventas</NavLink>
           <NavLink to="/admin/clientes">Clientes</NavLink>
           <NavLink to="/admin/estadisticas">Estadísticas</NavLink>
