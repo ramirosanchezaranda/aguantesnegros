@@ -51,10 +51,14 @@ export default function AdminProducts() {
     if (!window.confirm(`¿Eliminar "${product.name}"? Esta acción no se puede deshacer.`)) return
     setBusy(product.slug)
     try {
+      console.log('1. Eliminando...')
       await getRepo().deleteProduct(product.slug)
+      console.log('2. Delete completado, recargando...')
       await reload()
+      console.log('3. Reload completado')
       setMsg(`"${product.name}" eliminado.`)
     } catch (e) {
+      console.error('Error en remove():', e)
       setMsg(e instanceof Error ? e.message : 'No se pudo eliminar')
     } finally {
       setBusy(null)
