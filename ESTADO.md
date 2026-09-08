@@ -114,6 +114,34 @@ Si conseguís fotos de esas marcas, se cargan desde el panel del producto.
 
 ---
 
+## Dos implementaciones del mismo lector de archivos
+
+En septiembre se escribieron en paralelo dos lectores de listas de proveedor: uno
+en `src/lib/admin/fileParser.ts` (main) y otro en `src/lib/productImport.ts` +
+`src/lib/pdfText.ts` (rama de Claude). Al fusionarlos se conservó la interfaz y
+las funciones nuevas de main —categorías predictivas, detección de duplicados,
+autoguardado— y se reemplazó el motor de lectura, que sobre los PDF reales no
+funcionaba: pegaba todo el texto con espacios y su expresión regular leía `$65`
+de "INKPLAY FINISH TATTOO 65ML" en vez de los `$3.190` que era el precio. Sobre
+el mismo archivo, ninguno de los 24 "productos" que detectaba tenía un precio
+mayor a $1.000.
+
+Si alguna vez hay que volver a tocar esto, los dos puntos que hacen que un PDF
+de lista se lea bien son:
+
+1. **Agrupar los fragmentos por cercanía vertical, no redondeando a una grilla.**
+   El precio suele ir en un cuerpo más grande y su línea de base cae dos o tres
+   unidades más abajo que la del nombre; con una grilla fija, dos valores casi
+   iguales terminan en filas distintas según dónde caiga el límite.
+2. **Traducir los huecos horizontales grandes a tabulaciones.** Sin eso una fila
+   es `Vaselina Chica 4.990` y no hay forma de saber qué número es el precio.
+
+Y en las filas con menos celdas que el encabezado —típico cuando el PDF tiene una
+columna de fotos, que no deja texto— las posiciones no sirven: ahí se identifica
+por contenido, lo que parece importe es importe y el resto junto es el nombre.
+
+---
+
 ## Decisiones que ya se tomaron
 
 **Los envíos no se cotizan en la web.** Se coordinan por WhatsApp. El checkout

@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import FaviconController from './components/FaviconController'
@@ -83,6 +84,7 @@ export default function App() {
         </Routes>
       </div>
       {!isAdmin && <Footer />}
+      <Analytics />
     </>
   )
 }

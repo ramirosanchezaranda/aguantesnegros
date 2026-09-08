@@ -138,9 +138,26 @@ function readAsTable(text: string): ImportResult | null {
   for (let i = headerAt + 1; i < rows.length; i++) {
     const raw = rows[i]
     const cells = splitRow(raw, delimiter)
+
+    // Cuando la fila trae menos celdas que el encabezado, las posiciones ya no
+    // sirven. Pasa siempre en los PDF: la columna "IMAGENES" tiene la foto, que
+    // no deja texto, así que todo se corre y el precio se lee de la columna
+    // equivocada —o de ninguna—. En ese caso se identifica por contenido: lo que
+    // parece importe es importe, y el resto, junto, es el nombre.
+    const desalineada = cells.length !== columns.length
+    const esImporte = (v: string) => /^\$?\s*-?[\d][\d.,\s]*$/.test(v.trim()) && /\d/.test(v)
+    const importes = cells.filter(esImporte)
+    const numericos: Field[] = (['cost', 'price', 'stock'] as Field[]).filter((f) => used.has(f))
+    // Se reparten en el orden en que esas columnas aparecen en el encabezado.
+    numericos.sort((a, b) => (used.get(a) ?? 0) - (used.get(b) ?? 0))
+
     const cell = (f: Field) => {
       const idx = used.get(f)
-      return idx === undefined ? '' : (cells[idx] ?? '').trim()
+      if (!desalineada) return idx === undefined ? '' : (cells[idx] ?? '').trim()
+      if (f === 'name') return cells.filter((c) => c && !esImporte(c)).join(' ').trim()
+      if (f === 'category') return idx === undefined ? '' : (cells[idx] ?? '').trim()
+      const pos = numericos.indexOf(f)
+      return pos >= 0 && pos < importes.length ? importes[pos].trim() : ''
     }
     const name = cell('name')
     if (!name) {

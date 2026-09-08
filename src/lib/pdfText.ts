@@ -40,7 +40,10 @@ export async function pdfToText(file: File): Promise<string> {
   pdfjs.GlobalWorkerOptions.workerSrc = workerUrl
 
   const data = new Uint8Array(await file.arrayBuffer())
-  const doc = await pdfjs.getDocument({ data, isEvalSupported: false }).promise
+  // La tarea de carga se guarda aparte: en pdfjs 6 es la que se destruye
+  // para soltar el worker, no el documento.
+  const task = pdfjs.getDocument({ data })
+  const doc = await task.promise
   const pages = Math.min(doc.numPages, MAX_PAGES)
   const out: string[] = []
 
@@ -49,22 +52,34 @@ export async function pdfToText(file: File): Promise<string> {
     const content = await page.getTextContent()
     const items = content.items as unknown as TextItem[]
 
-    // Agrupar por renglón. La tolerancia absorbe las diferencias mínimas de
-    // línea base entre fragmentos de una misma fila.
-    const rows = new Map<number, { x: number; end: number; size: number; str: string }[]>()
-    for (const item of items) {
-      if (!item.str.trim()) continue
-      const y = Math.round(item.transform[5] / 3) * 3
-      const x = item.transform[4]
-      const row = rows.get(y) ?? []
-      row.push({ x, end: x + (item.width ?? 0), size: item.height || 10, str: item.str })
-      rows.set(y, row)
+    // Agrupar por renglón.
+    //
+    // No sirve redondear la coordenada a una grilla fija: el precio suele ir en
+    // un cuerpo más grande y su línea de base queda dos o tres unidades más
+    // abajo que la del nombre, así que dos valores casi iguales caen en cubos
+    // distintos si el límite de la grilla pasa justo entre ellos. Se agrupa por
+    // cercanía, con una tolerancia proporcional al tamaño de la letra.
+    const sueltos = items
+      .filter((it) => it.str.trim())
+      .map((it) => ({
+        y: it.transform[5],
+        x: it.transform[4],
+        end: it.transform[4] + (it.width ?? 0),
+        size: it.height || 10,
+        str: it.str,
+      }))
+      .sort((a, b) => b.y - a.y)
+
+    const filas: { y: number; x: number; end: number; size: number; str: string }[][] = []
+    for (const it of sueltos) {
+      const actual = filas[filas.length - 1]
+      const tol = Math.max(...(actual ?? [it]).map((c) => c.size), it.size) * 0.6
+      if (actual && Math.abs(actual[0].y - it.y) <= tol) actual.push(it)
+      else filas.push([it])
     }
 
-    // De arriba hacia abajo: en PDF la Y crece hacia arriba.
-    const ordered = [...rows.entries()].sort((a, b) => b[0] - a[0])
-    for (const [, row] of ordered) {
-      const cells = row.sort((a, b) => a.x - b.x)
+    for (const row of filas) {
+      const cells = row.slice().sort((a, b) => a.x - b.x)
       let line = ''
       for (let i = 0; i < cells.length; i++) {
         const cell = cells[i]
@@ -79,10 +94,11 @@ export async function pdfToText(file: File): Promise<string> {
       line = line.replace(/[ \t]*\t[ \t]*/g, '\t').replace(/ +/g, ' ').trim()
       if (line) out.push(line)
     }
+
     page.cleanup()
   }
 
-  await doc.destroy()
+  await task.destroy()
   if (doc.numPages > pages) {
     out.push(`(Se leyeron las primeras ${pages} páginas de ${doc.numPages}.)`)
   }

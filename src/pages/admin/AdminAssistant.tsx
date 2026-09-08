@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useCatalog } from '../../context/CatalogContext'
 import { getRepo } from '../../lib/catalog'
@@ -11,11 +11,9 @@ import {
   uniqueSlug,
   type ParsedLine,
 } from '../../lib/productCommand'
-import { importText } from '../../lib/productImport'
-import { looksEmpty, pdfToText } from '../../lib/pdfText'
-
-/** Lo que sabemos leer de un archivo. */
-const ACCEPT = '.csv,.tsv,.txt,.pdf,text/csv,text/plain,application/pdf'
+import { suggestCategory } from '../../lib/admin/categoryMatcher'
+import { findDuplicate } from '../../lib/admin/duplicateDetector'
+import { parseCSV, parsePDF, parseExcel, type ParsedProduct } from '../../lib/admin/fileParser'
 
 /** Ilustración por defecto de un producto nuevo, según su categoría. */
 const ART_BY_CATEGORY: Record<string, ArtKind> = {
@@ -46,6 +44,17 @@ interface Draft {
   message?: string
   /** Slug con el que quedó guardado, para poder enlazarlo. */
   savedSlug?: string
+  /** Si debe guardarse automáticamente sin confirmación del usuario */
+  autoSave?: boolean
+}
+
+interface DuplicateConfirmation {
+  draftId: string
+  turnId: string
+  similarProduct: Product
+  similarity: number
+  onConfirm: () => void
+  onCancel: () => void
 }
 
 interface Turn {
@@ -54,10 +63,6 @@ interface Turn {
   drafts: Draft[]
   /** Líneas escritas que no dejaron nada aprovechable. */
   ignored: string[]
-  /** Cómo se leyó el archivo, cuando vino de uno. */
-  how?: string
-  /** Avisos del archivo (una columna que falta, por ejemplo). */
-  notes?: string[]
 }
 
 const num = (v: number | undefined) => (v === undefined ? '' : String(v))
@@ -85,85 +90,28 @@ export default function AdminAssistant() {
   const { products, categories, reload } = useCatalog()
   const [input, setInput] = useState('')
   const [turns, setTurns] = useState<Turn[]>([])
-  const [reading, setReading] = useState<string | null>(null)
+  const [duplicateModal, setDuplicateModal] = useState<DuplicateConfirmation | null>(null)
+  const [isLoadingFile, setIsLoadingFile] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const fileRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const fallbackCategory = categories[0]?.slug ?? 'varios'
   const categorySlugs = useMemo(() => new Set(categories.map((c) => c.slug)), [categories])
 
-  /** De líneas interpretadas a fichas editables. Lo comparten el chat y los
-   *  archivos: un CSV y una frase escrita terminan en la misma tarjeta. */
-  function makeDrafts(lines: ParsedLine[]): Draft[] {
-    return lines.map((p, i) => {
-      const candidates = findCandidates(p.name, products)
-      const best = candidates[0]
-      // Sólo se preselecciona el producto existente cuando el parecido es
-      // alto. Con dudas arranca en "crear nuevo": inventar un producto de más
-      // se arregla borrándolo, pisar el equivocado se arregla mucho peor.
-      const target = best && best.score >= STRONG_SIMILARITY ? best.product.slug : ''
-      const existing = target ? products.find((x) => x.slug === target) : undefined
-      const category =
-        p.category && categorySlugs.has(p.category)
-          ? p.category
-          : existing?.category ?? fallbackCategory
-      return {
-        id: `${Date.now()}-${i}-${Math.random().toString(36).slice(2, 7)}`,
-        parsed: p,
-        target,
-        name: nameFor(target, p.name, products),
-        cost: num(p.cost),
-        price: num(p.price),
-        stock: num(p.stock),
-        category,
-        status: 'pending' as const,
-      }
-    })
-  }
+  // Auto-guardar drafts marcados con autoSave
+  useEffect(() => {
+    const autoSaveDrafts = turns.flatMap((turn) =>
+      turn.drafts
+        .filter((draft) => draft.autoSave && draft.status === 'pending')
+        .map((draft) => ({ turn, draft }))
+    )
 
-  /** Lee un archivo y arma las fichas. */
-  async function onFile(file: File | undefined) {
-    if (!file) return
-    setReading(file.name)
-    try {
-      const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name)
-      const text = isPdf ? await pdfToText(file) : await file.text()
-      if (isPdf && looksEmpty(text)) {
-        throw new Error(
-          'Ese PDF no tiene texto: son imágenes escaneadas. Sin un lector de OCR no hay nada que extraer. Probá con el CSV o el Excel original, o pasame los datos escritos.',
-        )
-      }
-      const result = importText(text)
-      setTurns((t) => [
-        ...t,
-        {
-          id: String(Date.now()),
-          input: `📄 ${file.name}`,
-          drafts: makeDrafts(result.lines),
-          ignored: result.skipped.slice(0, 6),
-          how: result.how,
-          notes: [
-            ...result.warnings,
-            ...(result.skipped.length > 6 ? [`Y ${result.skipped.length - 6} renglones más que salté.`] : []),
-          ],
-        },
-      ])
-    } catch (e) {
-      setTurns((t) => [
-        ...t,
-        {
-          id: String(Date.now()),
-          input: `📄 ${file.name}`,
-          drafts: [],
-          ignored: [],
-          notes: [e instanceof Error ? e.message : 'No pude leer el archivo.'],
-        },
-      ])
-    } finally {
-      setReading(null)
-      if (fileRef.current) fileRef.current.value = ''
+    if (autoSaveDrafts.length > 0) {
+      const { turn, draft } = autoSaveDrafts[0]
+      // Limpiar el flag y guardar
+      performSave(turn, { ...draft, autoSave: false })
     }
-  }
+  }, [turns])
 
   function submit() {
     const text = input.trim()
@@ -184,12 +132,90 @@ export default function AdminAssistant() {
     const written = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
     const ignored = written.filter((l) => !usable.some((p) => p.raw === l))
 
-    setTurns((t) => [
-      ...t,
-      { id: String(Date.now()), input: text, drafts: makeDrafts(usable), ignored },
-    ])
+    const drafts: Draft[] = usable.map((p, i) => {
+      const candidates = findCandidates(p.name, products)
+      const best = candidates[0]
+      const target = best && best.score >= STRONG_SIMILARITY ? best.product.slug : ''
+      const existing = target ? products.find((x) => x.slug === target) : undefined
+      
+      // Fuzzy matching de categoría
+      let category = fallbackCategory
+      if (p.category && categorySlugs.has(p.category)) {
+        category = p.category
+      } else if (existing?.category) {
+        category = existing.category
+      } else {
+        // Intenta adivinar la categoría por el nombre del producto
+        const suggestion = suggestCategory(p.name, categories)
+        category = suggestion?.slug ?? fallbackCategory
+      }
+      
+      // Auto-guardar productos nuevos que tienen precio
+      const autoSave = !target && p.price !== undefined
+      
+      return {
+        id: `${Date.now()}-${i}`,
+        parsed: p,
+        target,
+        name: nameFor(target, p.name, products),
+        cost: num(p.cost),
+        price: num(p.price),
+        stock: num(p.stock),
+        category,
+        status: 'pending',
+        autoSave,
+      }
+    })
+
+    setTurns((t) => [...t, { id: String(Date.now()), input: text, drafts, ignored }])
     setInput('')
     inputRef.current?.focus()
+  }
+
+  async function handleFileUpload(file: File) {
+    setIsLoadingFile(true)
+    try {
+      let parsedProducts: ParsedProduct[] = []
+      
+      if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+        parsedProducts = await parseCSV(file)
+      } else if (file.type === 'application/pdf') {
+        parsedProducts = await parsePDF(file)
+      } else if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.name.endsWith('.xlsx')) {
+        parsedProducts = await parseExcel(file)
+      } else {
+        alert('Formato no soportado. Usá PDF, CSV o Excel.')
+        return
+      }
+
+      if (parsedProducts.length === 0) {
+        alert('No se encontraron productos en el archivo.')
+        return
+      }
+
+      // Convertir ParsedProduct a líneas de texto para reutilizar la lógica existente
+      const lines = parsedProducts
+        .map((p) => {
+          const parts = [p.name]
+          if (p.price) parts.push(`precio ${p.price}`)
+          if (p.cost) parts.push(`proveedor ${p.cost}`)
+          if (p.stock) parts.push(`stock ${p.stock}`)
+          // Sin esto la columna de categoría del archivo se perdía en la ida
+          // y vuelta a texto, y todo caía en la categoría por defecto.
+          if (p.category) parts.push(`categoria ${p.category}`)
+          return parts.join(' ')
+        })
+        .join('\n')
+
+      setInput(lines)
+      inputRef.current?.focus()
+      alert(`Se cargaron ${parsedProducts.length} productos. Revisalos y envía.`)
+    } catch (e) {
+      alert(`Error al procesar archivo: ${e instanceof Error ? e.message : 'Error desconocido'}`)
+    } finally {
+      setIsLoadingFile(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
   }
 
   function patch(turnId: string, draftId: string, next: Partial<Draft>) {
@@ -206,6 +232,32 @@ export default function AdminAssistant() {
     const name = draft.name.trim()
     if (!name) return patch(turn.id, draft.id, { status: 'error', message: 'Falta el nombre.' })
 
+    // Detectar duplicados si es un producto nuevo
+    if (!draft.target) {
+      const duplicate = findDuplicate(name, products)
+      if (duplicate && duplicate.similarity > 70) {
+        setDuplicateModal({
+          draftId: draft.id,
+          turnId: turn.id,
+          similarProduct: duplicate.product,
+          similarity: duplicate.similarity,
+          onConfirm: () => {
+            setDuplicateModal(null)
+            performSave(turn, draft)
+          },
+          onCancel: () => {
+            setDuplicateModal(null)
+          },
+        })
+        return
+      }
+    }
+
+    performSave(turn, draft)
+  }
+
+  async function performSave(turn: Turn, draft: Draft) {
+    const name = draft.name.trim()
     const toNum = (v: string) => (v.trim() === '' ? undefined : Math.max(0, Number(v)))
     const cost = toNum(draft.cost)
     const price = toNum(draft.price)
@@ -299,6 +351,54 @@ export default function AdminAssistant() {
     return rows
   }
 
+  const modalStyles = {
+    overlay: {
+      position: 'fixed' as const,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+    },
+    modal: {
+      backgroundColor: 'white',
+      borderRadius: '8px',
+      padding: '2rem',
+      maxWidth: '500px',
+      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
+    },
+    title: {
+      margin: '0 0 1rem 0',
+      fontSize: '1.25rem',
+      fontWeight: 'bold',
+    },
+    description: {
+      margin: '0 0 0.5rem 0',
+      color: '#666',
+    },
+    question: {
+      margin: '1rem 0 1.5rem 0',
+      fontWeight: '500',
+      color: '#333',
+    },
+    actions: {
+      display: 'flex',
+      gap: '1rem',
+    },
+    confirmBtn: {
+      flex: 1,
+    },
+    cancelBtn: {
+      flex: 1,
+    },
+  }
+
+
+
   return (
     <div className="admin-page">
       <header className="admin-page__head">
@@ -314,11 +414,9 @@ export default function AdminAssistant() {
             <div className="chat__empty">
               <p className="chat__empty-title">Escribí un producto y lo cargo.</p>
               <p className="chat__empty-text">
-                Entiendo el nombre, el <strong>costo de proveedor</strong>, el <strong>precio de venta</strong>, las{' '}
-                <strong>unidades</strong> y la <strong>categoría</strong>, escritos como los dirías. Si ya existe algo
-                parecido, te lo muestro para actualizarlo en vez de duplicarlo. Podés pegar{' '}
-                <strong>varias líneas de una</strong>, o <strong>adjuntar la lista del proveedor</strong> en CSV o PDF y
-                la leo entera.
+                Entiendo el nombre, el <strong>costo de proveedor</strong>, el <strong>precio de venta</strong> y el{' '}
+                <strong>stock</strong>, escritos como los dirías. Si ya existe algo parecido, te lo muestro para
+                actualizarlo en vez de duplicarlo. Podés pegar <strong>varias líneas de una</strong>: una por producto.
               </p>
               <p className="chat__empty-label">Probá con:</p>
               <div className="chat__examples">
@@ -337,21 +435,6 @@ export default function AdminAssistant() {
           {turns.map((turn) => (
             <div className="chat__turn" key={turn.id}>
               <p className="chat__said">{turn.input}</p>
-
-              {turn.how && <p className="chat__note chat__note--how">{turn.how}</p>}
-
-              {turn.notes?.map((n) => (
-                <p className="chat__note chat__note--warn" key={n}>
-                  {n}
-                </p>
-              ))}
-
-              {turn.drafts.length > 1 && (
-                <p className="chat__note">
-                  {turn.drafts.length} productos para revisar. Se confirman de a uno: mirá los precios antes de
-                  guardar.
-                </p>
-              )}
 
               {turn.ignored.length > 0 && (
                 <p className="chat__note chat__note--warn">
@@ -380,10 +463,19 @@ export default function AdminAssistant() {
                     </header>
 
                     {done ? (
-                      <p className="draft__done">
-                        {draft.message}{' '}
-                        {draft.savedSlug && <Link to={`/admin/productos/${draft.savedSlug}`}>Abrir la ficha</Link>}
-                      </p>
+                      <div className="draft__done-container">
+                        <p className="draft__done">{draft.message}</p>
+                        {draft.savedSlug && (
+                          <div className="draft__done-actions">
+                            <Link to={`/admin/productos/${draft.savedSlug}`} className="admin-btn admin-btn--primary">
+                              ✏️ Editar
+                            </Link>
+                            <Link to={`/admin/productos/${draft.savedSlug}`} className="admin-btn admin-btn--ghost">
+                              📄 Abrir ficha
+                            </Link>
+                          </div>
+                        )}
+                      </div>
                     ) : (
                       <>
                         {draft.parsed.warnings.map((w) => (
@@ -532,20 +624,23 @@ export default function AdminAssistant() {
 
         <div className="chat__composer">
           <input
-            ref={fileRef}
+            ref={fileInputRef}
             type="file"
-            accept={ACCEPT}
-            className="chat__file-input"
-            onChange={(e) => void onFile(e.target.files?.[0])}
-            aria-label="Adjuntar una lista en CSV o PDF"
+            accept=".pdf,.csv,.xlsx,.xls"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) handleFileUpload(file)
+            }}
+            style={{ display: 'none' }}
+            aria-label="Subir archivo CSV, PDF o Excel"
           />
           <button
-            type="button"
-            className="admin-btn admin-btn--ghost chat__attach"
-            onClick={() => fileRef.current?.click()}
-            disabled={reading !== null}
+            className="admin-btn admin-btn--ghost"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isLoadingFile}
+            title="Cargar productos desde PDF, CSV o Excel"
           >
-            {reading ? `Leyendo ${reading}…` : '📎 Adjuntar lista'}
+            {isLoadingFile ? 'Procesando…' : '📁 Archivo'}
           </button>
           <textarea
             ref={inputRef}
@@ -569,8 +664,37 @@ export default function AdminAssistant() {
           </button>
         </div>
         <p className="chat__legend">
-          Enter envía · Shift + Enter agrega una línea · también podés adjuntar una lista en CSV o PDF
+          Enter envía · Shift + Enter agrega una línea para cargar varios productos de una · 📁 Archivo para cargar CSV, PDF o Excel
         </p>
+
+        {/* Modal de detección de duplicados */}
+        {duplicateModal && (
+          <div style={modalStyles.overlay}>
+            <div style={modalStyles.modal}>
+              <h2 style={modalStyles.title}>⚠️ Producto similar detectado</h2>
+              <p style={modalStyles.description}>
+                El producto "{duplicateModal.similarProduct.name}" ya existe y es {duplicateModal.similarity}% parecido.
+              </p>
+              <p style={modalStyles.question}>¿Querés crear uno nuevo de todas formas o editar el existente?</p>
+              <div style={modalStyles.actions}>
+                <button
+                  className="admin-btn admin-btn--primary"
+                  onClick={duplicateModal.onConfirm}
+                  style={modalStyles.confirmBtn}
+                >
+                  Crear de todas formas
+                </button>
+                <button
+                  className="admin-btn admin-btn--ghost"
+                  onClick={duplicateModal.onCancel}
+                  style={modalStyles.cancelBtn}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
