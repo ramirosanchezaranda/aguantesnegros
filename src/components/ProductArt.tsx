@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { ArtKind } from '../data/catalog'
 
 // Imagen del producto. Si tiene fotos cargadas desde el panel se usa una de
@@ -41,8 +42,13 @@ export default function ProductArt({
   /** Cuál de las fotos mostrar. Si no existe, cae a la primera. */
   index?: number
 }) {
+  // Una foto que no carga —borrada del Storage, todavía sin desplegar, sin
+  // conexión— dejaba un ícono de imagen rota en la ficha. Al primer error se
+  // descarta y se usa la ilustración, que siempre está en el propio build.
+  const [falló, setFalló] = useState(false)
   const gallery = product.images ?? []
-  const photo = (gallery[index] ?? gallery[0])?.trim()
+  const candidata = (gallery[index] ?? gallery[0])?.trim()
+  const photo = falló ? undefined : candidata
   const src = photo || BY_ART[product.art] || BY_CATEGORY[product.category] || FALLBACK
   return (
     <img
@@ -53,6 +59,7 @@ export default function ProductArt({
       aria-hidden="true"
       draggable={false}
       loading="lazy"
+      onError={() => setFalló(true)}
     />
   )
 }
