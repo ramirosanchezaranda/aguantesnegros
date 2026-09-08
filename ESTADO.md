@@ -96,21 +96,35 @@ los reponga, se cargan con el chat de **Productos por IA**.
 
 ## Fotos de producto
 
-**323 de 506 productos tienen foto.** Salieron de las 118 imágenes embebidas en
-los PDFs del proveedor, no de internet: el contenedor donde corre Claude tiene
-el egress bloqueado, y las fotos de fabricantes y competidores tienen derechos.
+**443 de 506 productos tienen foto (88 %).** Salieron de las 118 imágenes
+embebidas en los PDFs del proveedor, no de internet: el contenedor donde corre
+Claude tiene el egress bloqueado —se probaron Google Imágenes, Bing, imgur,
+Shopify, Amazon y Mercado Libre, todos dan `000`— y las fotos de fabricantes y
+competidores tienen derechos.
 
-Son **20 archivos WebP de 900 px en `public/products/catalogo/`**, 568 KB en
-total. Se asignan por familia, no por SKU, porque el proveedor pone una foto por
-sección: todas las `Aguja Spark …` comparten la caja Spark, que es lo que la
-caja realmente es.
+Son **28 archivos WebP de hasta 900 px en `public/products/catalogo/`**, 848 KB
+en total. Se asignan por familia, no por SKU, porque el proveedor pone una foto
+por sección: todas las `Aguja Spark …` comparten la caja Spark.
 
-**Quedaron 183 sin foto**: Carbon, Carbon King, Blackbird, Blacksheep, Bronc,
-Diamond, Inkplay, EZ Epic y Spark Tifany. No se les puso ninguna a propósito —
-deducir la familia por el texto de la página ponía una caja Spark en Carbon y
-una Mast Pro en Diamond. Una foto equivocada es peor que la ilustración.
+**Lo que sirvió para identificarlas fue mirarlas, no leer el texto de la página.**
+Deducir la familia por dónde aparece la marca en el texto ponía una caja Spark en
+Carbon, una Mast Pro en Diamond y la misma caja genérica en tres marcas. Las 14
+familias que faltaban se recuperaron leyendo la marca impresa en la propia foto:
+Bronc, Blacksheep, Blackbird, Carbon, Carbon King, Diamond, Spark Tifany y demás.
 
-Si conseguís fotos de esas marcas, se cargan desde el panel del producto.
+**Quedan 63 sin foto**, y son los que no aparecen fotografiados en ningún PDF:
+
+| Grupo | Productos |
+| --- | ---: |
+| Aguja Inkplay | 33 |
+| Accesorios (porta cartuchos, vasos, bandejas) | 12 |
+| Tintas de marcas sueltas (5 Jinetes, Crazy Monkey…) | 8 |
+| Aguja EZ Epic | 5 |
+| Sueltos (Fibra Freehand, Kit Inkplay, Rollo Protector…) | 5 |
+
+Los accesorios sí tienen fotos en el PDF de cartuchos, pero no se pudo saber con
+certeza cuál corresponde a cuál, y una foto equivocada es peor que la
+ilustración. Si conseguís fotos de estos, se cargan desde el panel del producto.
 
 ---
 
