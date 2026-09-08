@@ -200,6 +200,9 @@ export default function AdminAssistant() {
           if (p.price) parts.push(`precio ${p.price}`)
           if (p.cost) parts.push(`proveedor ${p.cost}`)
           if (p.stock) parts.push(`stock ${p.stock}`)
+          // Sin esto la columna de categoría del archivo se perdía en la ida
+          // y vuelta a texto, y todo caía en la categoría por defecto.
+          if (p.category) parts.push(`categoria ${p.category}`)
           return parts.join(' ')
         })
         .join('\n')

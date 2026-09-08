@@ -4,7 +4,7 @@
 //
 // Igual que el catálogo, usa Supabase si está configurado y localStorage si no.
 
-import { hasSupabase, restUrl, sbHeaders } from './supabase'
+import { hasSupabase, restUrl, sbAdminHeaders, sbHeaders } from './supabase'
 
 export interface OrderLine {
   slug: string
@@ -133,7 +133,7 @@ export async function listOrders(): Promise<Order[]> {
   if (!hasSupabase()) {
     return readLocal().sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   }
-  const res = await fetch(restUrl('orders?select=*&order=created_at.desc'), { headers: await sbHeaders() })
+  const res = await fetch(restUrl('orders?select=*&order=created_at.desc'), { headers: await sbAdminHeaders() })
   if (!res.ok) {
     const body = await res.text().catch(() => '')
     throw new Error(`No se pudieron leer los pedidos (${res.status}): ${body || res.statusText}`)

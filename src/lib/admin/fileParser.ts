@@ -1,8 +1,20 @@
-import Papa from 'papaparse'
-import * as pdfjsLib from 'pdfjs-dist'
+// Lectura de listas de proveedor: CSV, TSV, texto plano y PDF.
+//
+// La interfaz (parseCSV / parsePDF / parseExcel / ParsedProduct) es la que
+// consume AdminAssistant. Por dentro delega en `productImport`, que lee la
+// tabla por columna cuando hay encabezados y cae al parser de texto suelto
+// cuando no, y en `pdfText`, que reconstruye los renglones del PDF.
+//
+// Ese último punto es el que decide si esto sirve o no. Un PDF entrega
+// fragmentos sueltos con su posición: pegarlos con un espacio convierte una
+// fila de tabla en "Vaselina Chica 4.990" y no queda forma de distinguir el
+// precio del gramaje, así que se terminaba leyendo "65" de "65ML" como si
+// fuera el precio. Agrupando por coordenada vertical y traduciendo los huecos
+// horizontales a tabulaciones, el PDF se lee por columna igual que un CSV.
 
-// Set up worker for PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+import { importText } from '../productImport'
+import { looksEmpty, pdfToText } from '../pdfText'
+import type { ParsedLine } from '../productCommand'
 
 export interface ParsedProduct {
   name: string
@@ -15,127 +27,43 @@ export interface ParsedProduct {
   specs?: [string, string][]
 }
 
-/**
- * Parsea un archivo CSV y extrae filas como potenciales productos.
- * Trata de mapear automáticamente columnas comunes.
- */
+function toProducts(lines: ParsedLine[]): ParsedProduct[] {
+  return lines.map((l) => ({
+    name: l.name,
+    price: l.price,
+    cost: l.cost,
+    stock: l.stock,
+    category: l.category,
+  }))
+}
+
+/** CSV, TSV o texto: separador y encabezados se detectan solos. */
 export async function parseCSV(file: File): Promise<ParsedProduct[]> {
-  const text = await file.text()
-  return new Promise((resolve, reject) => {
-    ;(Papa.parse as any)(text, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results: any) => {
-        const products = (results.data as Record<string, string>[])
-          .filter((row: Record<string, string>) => Object.values(row).some((v) => v && v.trim()))
-          .map((row: Record<string, string>) => mapRowToProduct(row))
-
-        resolve(products)
-      },
-      error: (error: any) => reject(new Error(`Error parseando CSV: ${error.message}`)),
-    })
-  })
+  const result = importText(await file.text())
+  if (result.lines.length === 0) {
+    throw new Error(
+      'No pude sacar ningún producto del archivo. Fijate que tenga una columna de nombre y otra de precio.',
+    )
+  }
+  return toProducts(result.lines)
 }
 
-/**
- * Parsea un archivo Excel (.xlsx).
- * Nota: Requiere librería adicional. Por ahora retorna error.
- */
-export async function parseExcel(file: File): Promise<ParsedProduct[]> {
-  // Para Excel necesitaría 'xlsx' o 'exceljs'
-  // Por ahora, sugerimos convertir a CSV en el frontend
-  throw new Error('Excel aún no está soportado. Por favor convertí el archivo a CSV.')
+/** Excel todavía no: hace falta una librería aparte para leer .xlsx. */
+export async function parseExcel(_file: File): Promise<ParsedProduct[]> {
+  throw new Error('Excel todavía no está soportado. Guardalo como CSV y volvé a probar.')
 }
 
-/**
- * Parsea un archivo PDF y extrae texto.
- * Intenta encontrar patrones de productos (nombre + precio).
- */
+/** PDF con texto. Los escaneados no tienen nada que extraer sin OCR. */
 export async function parsePDF(file: File): Promise<ParsedProduct[]> {
-  const arrayBuffer = await file.arrayBuffer()
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
-  let fullText = ''
-
-  for (let i = 0; i < pdf.numPages; i++) {
-    const page = await pdf.getPage(i + 1)
-    const textContent = await page.getTextContent()
-    const pageText = textContent.items.map((item: any) => item.str).join(' ')
-    fullText += pageText + '\n'
+  const text = await pdfToText(file)
+  if (looksEmpty(text)) {
+    throw new Error(
+      'Ese PDF no tiene texto: son imágenes escaneadas. Sin un lector de OCR no hay nada que extraer. Probá con el CSV o el Excel original.',
+    )
   }
-
-  return extractProductsFromText(fullText)
-}
-
-/**
- * Mapea una fila de CSV/Excel a un producto.
- * Busca columnas comunes: name, product, nombre, price, precio, cost, costo, etc.
- */
-function mapRowToProduct(row: Record<string, string>): ParsedProduct {
-  const keys = Object.keys(row).map((k) => k.toLowerCase())
-  const getKeyValue = (key: string | undefined): string => {
-    if (!key) return ''
-    const originalKey = Object.keys(row).find((k) => k.toLowerCase() === key)
-    return originalKey ? row[originalKey]?.trim() ?? '' : ''
+  const result = importText(text)
+  if (result.lines.length === 0) {
+    throw new Error('Leí el PDF pero no reconocí ningún producto con precio.')
   }
-
-  const getName = () => {
-    const nameKey = keys.find((k) => k.includes('name') || k.includes('producto') || k.includes('nombre'))
-    return getKeyValue(nameKey)
-  }
-
-  const getNumber = (patterns: string[]): number | undefined => {
-    const key = keys.find((k) => patterns.some((p) => k.includes(p)))
-    if (!key) return undefined
-    const originalKey = Object.keys(row).find((k) => k.toLowerCase() === key)
-    if (!originalKey) return undefined
-    const val = parseFloat(row[originalKey])
-    return isNaN(val) ? undefined : val
-  }
-
-  const brandKey = keys.find((k) => k.includes('brand') || k.includes('marca'))
-  const categoryKey = keys.find((k) => k.includes('category') || k.includes('categoría'))
-  const descKey = keys.find((k) => k.includes('description') || k.includes('descripción'))
-
-  return {
-    name: getName(),
-    brand: getKeyValue(brandKey),
-    price: getNumber(['price', 'precio', 'venta']),
-    cost: getNumber(['cost', 'costo', 'compra']),
-    stock: getNumber(['stock', 'cantidad']),
-    category: getKeyValue(categoryKey),
-    description: getKeyValue(descKey),
-  }
-}
-
-/**
- * Extrae productos potenciales de texto plano (ej: de un PDF).
- * Busca patrones como: "Nombre $100" o "Producto - Precio"
- */
-function extractProductsFromText(text: string): ParsedProduct[] {
-  const products: ParsedProduct[] = []
-
-  // Patrón: "Nombre $100" o "Nombre - $100" o similar
-  const pricePattern = /(.+?)[\s-]*\$?(\d+(?:\.\d{2})?)/g
-  let match
-
-  while ((match = pricePattern.exec(text)) !== null) {
-    const name = match[1].trim()
-    const price = parseFloat(match[2])
-
-    // Valida que sea un nombre sensato (al menos 2 caracteres)
-    if (name.length >= 2 && !name.match(/^\d/) && price > 0) {
-      products.push({
-        name,
-        price: Math.round(price),
-      })
-    }
-  }
-
-  // Si no encontró nada, retorna líneas que parecen nombres de productos
-  if (products.length === 0) {
-    const lines = text.split(/[\n\r]+/).filter((l) => l.trim().length > 2)
-    return lines.slice(0, 20).map((name) => ({ name }))
-  }
-
-  return products
+  return toProducts(result.lines)
 }

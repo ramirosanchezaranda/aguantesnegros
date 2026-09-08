@@ -8,7 +8,7 @@ import {
   type Product,
 } from '../../data/catalog'
 import { compressImage } from '../images'
-import { publicStorageUrl, restUrl, sbHeaders, storageUrl } from '../supabase'
+import { publicStorageUrl, restUrl, sbAdminHeaders, sbHeaders, storageUrl } from '../supabase'
 import type { CatalogRepo } from './types'
 
 /* Columnas en Postgres (snake_case) <-> tipos de la app (camelCase). */
@@ -101,6 +101,25 @@ async function ensureOk(res: Response, action: string): Promise<void> {
   }
 }
 
+/**
+ * Comprueba que la escritura haya tocado alguna fila.
+ *
+ * PostgREST responde 204 aunque las políticas de la base hayan filtrado todo,
+ * así que sin esto un borrado que no borró nada se ve como un éxito. Con
+ * `Prefer: return=representation` devuelve las filas afectadas y se puede
+ * contar: cero filas es un fallo, no un éxito silencioso.
+ */
+async function ensureTouched(res: Response, action: string): Promise<void> {
+  await ensureOk(res, action)
+  if (res.status === 204) return // el servidor no devolvió cuerpo: no hay nada que contar
+  const rows = (await res.json().catch(() => null)) as unknown
+  if (Array.isArray(rows) && rows.length === 0) {
+    throw new Error(
+      `${action}: el servidor no aplicó el cambio. Suele ser la sesión vencida: cerrá sesión, volvé a entrar y probá de nuevo.`,
+    )
+  }
+}
+
 export function createSupabaseRepo(): CatalogRepo {
   return {
     // Semilla como placeholder hasta que resuelva el primer fetch.
@@ -122,37 +141,41 @@ export function createSupabaseRepo(): CatalogRepo {
     },
 
     async saveProduct(product) {
-      const res = await fetch(restUrl('products?on_conflict=slug'), {
+      const res = await fetch(restUrl('products?on_conflict=slug&select=slug'), {
         method: 'POST',
-        headers: await sbHeaders({ Prefer: 'resolution=merge-duplicates' }),
+        headers: await sbAdminHeaders({
+          Prefer: 'resolution=merge-duplicates,return=representation',
+        }),
         body: JSON.stringify(productToRow(product)),
       })
-      await ensureOk(res, 'Guardar producto')
+      await ensureTouched(res, 'Guardar producto')
     },
 
     async deleteProduct(slug) {
-      const res = await fetch(restUrl(`products?slug=eq.${encodeURIComponent(slug)}`), {
+      const res = await fetch(restUrl(`products?slug=eq.${encodeURIComponent(slug)}&select=slug`), {
         method: 'DELETE',
-        headers: await sbHeaders(),
+        headers: await sbAdminHeaders({ Prefer: 'return=representation' }),
       })
-      await ensureOk(res, 'Eliminar producto')
+      await ensureTouched(res, 'Eliminar producto')
     },
 
     async saveCategory(category) {
-      const res = await fetch(restUrl('categories?on_conflict=slug'), {
+      const res = await fetch(restUrl('categories?on_conflict=slug&select=slug'), {
         method: 'POST',
-        headers: await sbHeaders({ Prefer: 'resolution=merge-duplicates' }),
+        headers: await sbAdminHeaders({
+          Prefer: 'resolution=merge-duplicates,return=representation',
+        }),
         body: JSON.stringify(category),
       })
-      await ensureOk(res, 'Guardar categoría')
+      await ensureTouched(res, 'Guardar categoría')
     },
 
     async deleteCategory(slug) {
-      const res = await fetch(restUrl(`categories?slug=eq.${encodeURIComponent(slug)}`), {
+      const res = await fetch(restUrl(`categories?slug=eq.${encodeURIComponent(slug)}&select=slug`), {
         method: 'DELETE',
-        headers: await sbHeaders(),
+        headers: await sbAdminHeaders({ Prefer: 'return=representation' }),
       })
-      await ensureOk(res, 'Eliminar categoría')
+      await ensureTouched(res, 'Eliminar categoría')
     },
 
     async uploadImage(slug, file) {
@@ -162,7 +185,7 @@ export function createSupabaseRepo(): CatalogRepo {
       const path = `${slug}-${Date.now()}.webp`
       const res = await fetch(storageUrl(IMAGE_BUCKET, path), {
         method: 'POST',
-        headers: await sbHeaders({ 'Content-Type': 'image/webp' }),
+        headers: await sbAdminHeaders({ 'Content-Type': 'image/webp' }),
         body: blob,
       })
       await ensureOk(res, 'Subir la imagen')
