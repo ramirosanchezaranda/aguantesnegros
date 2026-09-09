@@ -128,6 +128,27 @@ export async function saveOrder(order: Order): Promise<void> {
   }
 }
 
+/** Borra un pedido. Sólo lo puede hacer el admin. */
+export async function deleteOrder(id: string): Promise<void> {
+  if (!hasSupabase()) {
+    const all = readLocal().filter((o) => o.id !== id)
+    try {
+      localStorage.setItem(KEY, JSON.stringify(all))
+    } catch {
+      /* sin espacio: el borrado igual ocurrió en memoria */
+    }
+    return
+  }
+  const res = await fetch(`${restUrl('orders')}?id=eq.${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: await sbAdminHeaders(),
+  })
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    throw new Error(`No se pudo eliminar el pedido (${res.status}): ${body || res.statusText}`)
+  }
+}
+
 /** Pedidos, del más reciente al más viejo. Sólo lo puede leer el admin. */
 export async function listOrders(): Promise<Order[]> {
   if (!hasSupabase()) {

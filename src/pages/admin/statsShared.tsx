@@ -49,9 +49,10 @@ export function Bar({ label, value, max, hint }: { label: string; value: number;
 }
 
 /** Pedidos del backend. `orders === null` mientras carga. */
-export function useOrders(): { orders: Order[] | null; error: string | null } {
+export function useOrders(): { orders: Order[] | null; error: string | null; refetch: () => void } {
   const [orders, setOrders] = useState<Order[] | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [tick, setTick] = useState(0)
   useEffect(() => {
     let alive = true
     listOrders()
@@ -60,6 +61,6 @@ export function useOrders(): { orders: Order[] | null; error: string | null } {
     return () => {
       alive = false
     }
-  }, [])
-  return { orders, error }
+  }, [tick])
+  return { orders, error, refetch: () => setTick((t) => t + 1) }
 }

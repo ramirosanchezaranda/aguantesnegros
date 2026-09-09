@@ -3256,6 +3256,13 @@ html[data-theme='dark'] .hero__mascot {
 .admin-card__actions .admin-btn--white:hover {
   background: #f1ece2;
 }
+.admin-card__confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
 
 /* Cards en vez de tabla hasta 1024px: cubre teléfonos, tablets (iPad
    vertical y horizontal) y ventanas de escritorio achicadas, donde la

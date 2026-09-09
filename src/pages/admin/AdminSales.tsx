@@ -2,18 +2,36 @@ import { useMemo, useState } from 'react'
 import { useCatalog } from '../../context/CatalogContext'
 import { formatPrice } from '../../lib/format'
 import { customerWhatsappLink, getPaymentMethod } from '../../data/shop'
+import { deleteOrder } from '../../lib/orders'
 import { Bar, PeriodSelect, sinceOf, useOrders, type Period } from './statsShared'
 
 type Sort = 'recientes' | 'antiguos' | 'monto-desc' | 'monto-asc'
 
 export default function AdminSales() {
   const { categories } = useCatalog()
-  const { orders, error } = useOrders()
+  const { orders, error, refetch } = useOrders()
   const [period, setPeriod] = useState<Period>(30)
   const [sort, setSort] = useState<Sort>('recientes')
   const [province, setProvince] = useState('todas')
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const categoryName = (slug: string) => categories.find((c) => c.slug === slug)?.name ?? slug
+
+  const handleDelete = async (id: string) => {
+    setDeleting(id)
+    setDeleteError(null)
+    try {
+      await deleteOrder(id)
+      setConfirmDelete(null)
+      refetch()
+    } catch (e) {
+      setDeleteError(e instanceof Error ? e.message : 'No se pudo eliminar el pedido')
+    } finally {
+      setDeleting(null)
+    }
+  }
 
   const inRange = useMemo(() => {
     if (!orders) return null
@@ -264,9 +282,9 @@ export default function AdminSales() {
                         </span>
                       </div>
 
-                      {o.customer?.whatsapp && (
-                        <div className="admin-card__actions">
-                          {wa ? (
+                      <div className="admin-card__actions">
+                        {o.customer?.whatsapp && (
+                          wa ? (
                             <a
                               className="admin-btn admin-btn--sm admin-btn--white"
                               href={wa}
@@ -277,9 +295,39 @@ export default function AdminSales() {
                             </a>
                           ) : (
                             <span className="admin-card__sub">WhatsApp: {o.customer.whatsapp}</span>
-                          )}
-                        </div>
-                      )}
+                          )
+                        )}
+                        {confirmDelete === o.id ? (
+                          <span className="admin-card__confirm">
+                            <span className="admin-card__sub">¿Eliminar este pedido?</span>
+                            <button
+                              className="admin-btn admin-btn--sm admin-btn--danger"
+                              disabled={deleting === o.id}
+                              onClick={() => handleDelete(o.id)}
+                            >
+                              {deleting === o.id ? 'Eliminando…' : 'Sí, eliminar'}
+                            </button>
+                            <button
+                              className="admin-btn admin-btn--sm admin-btn--white"
+                              onClick={() => { setConfirmDelete(null); setDeleteError(null) }}
+                            >
+                              Cancelar
+                            </button>
+                            {deleteError && (
+                              <span className="admin-card__sub" style={{ color: 'var(--color-error, #c0392b)' }}>
+                                {deleteError}
+                              </span>
+                            )}
+                          </span>
+                        ) : (
+                          <button
+                            className="admin-btn admin-btn--sm admin-btn--ghost"
+                            onClick={() => setConfirmDelete(o.id)}
+                          >
+                            Eliminar pedido
+                          </button>
+                        )}
+                      </div>
                     </article>
                   )
                 })}
